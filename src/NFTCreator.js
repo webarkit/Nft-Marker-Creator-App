@@ -363,7 +363,7 @@ function extractExif(buf) {
                 } else {
                     let dpi = 72;
 
-                    if (parseInt(metadata['XResolution'] != null)) {
+                    if (metadata['XResolution'] != null) {
                         dpi = Math.min(parseInt(metadata['XResolution'].description), parseInt(metadata['YResolution'].description));
                     } else {
                         console.log("\nWARNING: No DPI value found! Using 72 as default value!\n");
