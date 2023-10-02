@@ -1,5 +1,6 @@
 const path = require("path");
 const fs = require('fs');
+const sharp = require('sharp');
 const readlineSync = require('readline-sync');
 const inkjet = require('inkjet');
 const im = require('imagemagick');
@@ -297,7 +298,8 @@ async function useJPG(buf) {
         }
     });
 
-    await extractExif(buf);
+    //await extractExif(buf);
+    await extractMetadata(buf);
 }
 
 function extractExif(buf) {
@@ -415,6 +417,18 @@ function extractExif(buf) {
         });
     })
 
+}
+
+async function extractMetadata(buf) {
+    return await sharp(buf).metadata()
+    .then(function(metadata) {
+        //console.log(metadata);
+        imageData.dpi = metadata.density;
+        imageData.sizeX = metadata.width;
+        imageData.sizeY = metadata.height;
+    }).catch(function(err) {
+        console.error("Error extracting metadata: " + err);
+    });
 }
 
 function usePNG(buf) {
