@@ -113,7 +113,8 @@ Module.onRuntimeInitialized = async function () {
     }
 
     if (extName.toLowerCase() === ".jpg" || extName.toLowerCase() === ".jpeg") {
-        await useJPG(buffer)
+        //await useJPG(buffer)
+        await useJPG_w_sharp(buffer);
     } else if (extName.toLowerCase() === ".png") {
         usePNG(buffer);
     }
@@ -302,6 +303,49 @@ async function useJPG(buf) {
     await extractMetadata(buf);
 }
 
+async function useJPG_w_sharp(buf) {
+    const image = sharp(buf);
+    return await image.metadata()
+        .then(function (metadata) {
+            if (metadata.density) {
+                imageData.dpi = metadata.density;
+            } else {
+                console.log("\nWARNING: No DPI value found! Using 72 as default value!\n");
+                imageData.dpi = 72;
+            }
+            imageData.sizeX = metadata.width;
+            imageData.sizeY = metadata.height;
+            imageData.nc = metadata.channels;
+            return image.toBuffer()
+        })
+        
+        .then(data => {
+            let newArr = [];
+
+            let verifyColorSpace = detectColorSpace(data);
+
+            if (verifyColorSpace === 1) {
+                for (let j = 0; j < data.length; j += 4) {
+                    newArr.push(data[j]);
+                }
+            } else if (verifyColorSpace === 3) {
+                for (let j = 0; j < data.length; j += 4) {
+                    newArr.push(data[j]);
+                    newArr.push(data[j + 1]);
+                    newArr.push(data[j + 2]);
+                }
+            }
+
+            let uint = new Uint8Array(newArr);
+            imageData.nc = verifyColorSpace;
+            imageData.array = uint;
+        })
+        .catch(function (err) {
+            console.error("Error extracting metadata: " + err);
+            process.exit(1);
+        });
+}
+
 function extractExif(buf) {
     return new Promise((resolve, reject) => {
 
@@ -421,20 +465,20 @@ function extractExif(buf) {
 
 async function extractMetadata(buf) {
     return await sharp(buf).metadata()
-    .then(function(metadata) {
-        if(metadata.density) {
-            imageData.dpi = metadata.density;
-        } else {
-            console.log("\nWARNING: No DPI value found! Using 72 as default value!\n");
-            imageData.dpi = 72;
-        }
-        imageData.sizeX = metadata.width;
-        imageData.sizeY = metadata.height;
-        imageData.nc = metadata.channels;
-    }).catch(function(err) {
-        console.error("Error extracting metadata: " + err);
-        process.exit(1);
-    });
+        .then(function (metadata) {
+            if (metadata.density) {
+                imageData.dpi = metadata.density;
+            } else {
+                console.log("\nWARNING: No DPI value found! Using 72 as default value!\n");
+                imageData.dpi = 72;
+            }
+            imageData.sizeX = metadata.width;
+            imageData.sizeY = metadata.height;
+            imageData.nc = metadata.channels;
+        }).catch(function (err) {
+            console.error("Error extracting metadata: " + err);
+            process.exit(1);
+        });
 }
 
 function usePNG(buf) {
