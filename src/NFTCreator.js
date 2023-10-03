@@ -422,12 +422,18 @@ function extractExif(buf) {
 async function extractMetadata(buf) {
     return await sharp(buf).metadata()
     .then(function(metadata) {
-        //console.log(metadata);
-        imageData.dpi = metadata.density;
+        if(metadata.density) {
+            imageData.dpi = metadata.density;
+        } else {
+            console.log("\nWARNING: No DPI value found! Using 72 as default value!\n");
+            imageData.dpi = 72;
+        }
         imageData.sizeX = metadata.width;
         imageData.sizeY = metadata.height;
+        imageData.nc = metadata.channels;
     }).catch(function(err) {
         console.error("Error extracting metadata: " + err);
+        process.exit(1);
     });
 }
 
