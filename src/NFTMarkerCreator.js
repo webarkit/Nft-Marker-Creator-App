@@ -150,12 +150,10 @@ Module.onRuntimeInitialized = async function () {
     }
 
     let paramStr = params.join(' ');
-    console.log(paramStr);
 
     let StrBuffer = Module._malloc(paramStr.length + 1);
     //Module.writeStringToMemory(paramStr, StrBuffer);
     Module.stringToUTF8(paramStr, StrBuffer);
-
 
     console.log('Write Success');
     let heapSpace = Module._malloc(imageData.array.length * imageData.array.BYTES_PER_ELEMENT);
@@ -318,26 +316,22 @@ async function useJPG_w_sharp(buf) {
             imageData.sizeX = metadata.width;
             imageData.sizeY = metadata.height;
             imageData.nc = metadata.channels;
-            return image.toBuffer()
+            return image
+            .raw()
+            .toBuffer()
         })   
         .then(data => {
-            let newArr = [];
+            let dt = data.buffer
 
-            let verifyColorSpace = detectColorSpace(data);
+            let verifyColorSpace = detectColorSpace(dt);
 
             if (verifyColorSpace === 1) {
-                for (let j = 0; j < data.length; j += 4) {
-                    newArr.push(data[j]);
-                }
+                console.log("Color Space is 1 channel!");
             } else if (verifyColorSpace === 3) {
-                for (let j = 0; j < data.length; j += 4) {
-                    newArr.push(data[j]);
-                    newArr.push(data[j + 1]);
-                    newArr.push(data[j + 2]);
-                }
+                console.log("Color Space is 3 channels!");
             }
 
-            let uint = new Uint8Array(newArr);
+            let uint = new Uint8Array(dt);
             imageData.nc = verifyColorSpace;
             imageData.array = uint;
         })
