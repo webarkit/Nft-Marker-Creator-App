@@ -2,8 +2,8 @@ const path = require("path");
 const fs = require('fs');
 const sharp = require('sharp');
 const readlineSync = require('readline-sync');
-const inkjet = require('inkjet');
-const im = require('imagemagick');
+//const inkjet = require('inkjet');
+//const im = require('imagemagick');
 const PNG = require('pngjs').PNG;
 var Module = require('../build/NftMarkerCreator_wasm.js');
 
@@ -271,6 +271,7 @@ Module.onRuntimeInitialized = async function () {
     process.exit(0);
 }
 
+/*
 async function useJPG(buf) {
     inkjet.decode(buf, function (err, decoded) {
         if (err) {
@@ -302,6 +303,7 @@ async function useJPG(buf) {
     //await extractExif(buf);
     await extractMetadata(buf);
 }
+*/
 
 async function useJPG_w_sharp(buf) {
     const image = sharp(buf);
@@ -345,7 +347,7 @@ async function useJPG_w_sharp(buf) {
         });
 }
 
-function extractExif(buf) {
+/*function extractExif(buf) {
     return new Promise((resolve, reject) => {
 
         inkjet.exif(buf, async function (err, metadata) {
@@ -461,6 +463,7 @@ function extractExif(buf) {
     })
 
 }
+*/
 
 async function extractMetadata(buf) {
     return await sharp(buf).metadata()
@@ -516,6 +519,7 @@ async function usePNG(buf) {
     await extractMetadata(buf);
 }
 
+/*
 function imageMagickIdentify(srcImage) {
     return new Promise((resolve, reject) => {
         im.identify(srcImage, function (err, features) {
@@ -524,6 +528,7 @@ function imageMagickIdentify(srcImage) {
         })
     })
 }
+*/
 
 function getValues(str, type) {
     let values;
