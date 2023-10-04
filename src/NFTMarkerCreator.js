@@ -116,7 +116,7 @@ Module.onRuntimeInitialized = async function () {
         //await useJPG(buffer)
         await useJPG_w_sharp(buffer);
     } else if (extName.toLowerCase() === ".png") {
-        usePNG(buffer);
+        await usePNG(buffer);
     }
 
     let confidence = calculateQuality();
@@ -305,8 +305,8 @@ async function useJPG(buf) {
 
 async function useJPG_w_sharp(buf) {
     const image = sharp(buf);
-    return await image.metadata()
-        .then(function (metadata) {
+    await image.metadata()
+        .then(metadata => {
             if (metadata.density) {
                 imageData.dpi = metadata.density;
             } else {
@@ -317,8 +317,7 @@ async function useJPG_w_sharp(buf) {
             imageData.sizeY = metadata.height;
             imageData.nc = metadata.channels;
             return image.toBuffer()
-        })
-        
+        })   
         .then(data => {
             let newArr = [];
 
@@ -481,7 +480,7 @@ async function extractMetadata(buf) {
         });
 }
 
-function usePNG(buf) {
+async function usePNG(buf) {
     let data;
     var png = PNG.sync.read(buf);
 
@@ -514,7 +513,7 @@ function usePNG(buf) {
     imageData.nc = verifyColorSpace;
     imageData.sizeX = png.width;
     imageData.sizeY = png.height;
-    imageData.dpi = 72;
+    await extractMetadata(buf);
 }
 
 function imageMagickIdentify(srcImage) {
