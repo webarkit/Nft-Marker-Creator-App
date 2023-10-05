@@ -2,6 +2,7 @@ const path = require("path");
 const fs = require('fs');
 const sharp = require('sharp');
 const readlineSync = require('readline-sync');
+const { prompt } = require('enquirer');
 //const inkjet = require('inkjet');
 //const im = require('imagemagick');
 const PNG = require('pngjs').PNG;
@@ -68,8 +69,12 @@ Module.onRuntimeInitialized = async function () {
     }
 
     if (!foundInputPath.b) {
-        console.log("\nERROR: No image in INPUT command!\n e.g:(-i /PATH/TO/IMAGE)\n");
-        process.exit(1);
+        const response = await prompt({
+            type: 'input',
+            name: 'inputPath',
+            message: 'Image path not present, to continue provide a path to image:'
+          });
+        srcImage = path.join(__dirname, response.inputPath);
     } else {
         srcImage = path.join(__dirname, process.argv[foundInputPath.i]);
     }
@@ -141,12 +146,7 @@ Module.onRuntimeInitialized = async function () {
     console.log("\nConfidence level: [" + txt + "] %f/5 || Entropy: %f || Current max: 5.17 min: 4.6\n", confidence.l, confidence.e)
 
     if (noConf) {
-        const answer = readlineSync.question(`\nDo you want to continue? (Y/N)\n`);
-
-        if (answer == "n") {
-            console.log("\nProcess finished by the user! \n");
-            process.exit(1);
-        }
+        await askToContinue();
     }
 
     let paramStr = params.join(' ');
@@ -332,6 +332,12 @@ async function useJPG_w_sharp(buf) {
             }
 
             let uint = new Uint8Array(dt);
+            if(imageData.nc === verifyColorSpace){
+                console.log("Color Space is equal to metadata.channels!");
+            }else{
+                console.log("Color Space is not equal to metadata.channels!");
+                //process.exit(1);
+            }
             imageData.nc = verifyColorSpace;
             imageData.array = uint;
         })
@@ -647,5 +653,18 @@ function addNewMarker(text, name) {
             text[i] = "<script>MARKER_NAME = '" + name + "'</script>"
             break;
         }
+    }
+}
+
+async function askToContinue() {
+    const response = await prompt({
+        type: 'input',
+        name: 'answer',
+        message: 'Do you want to continue? (Y/N)\n'
+      });
+
+    if (response.answer == "n") {
+        console.log("\nProcess finished by the user! \n");
+        process.exit(1);
     }
 }
