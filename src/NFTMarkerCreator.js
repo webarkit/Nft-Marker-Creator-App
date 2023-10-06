@@ -2,7 +2,6 @@ const path = require("path");
 const fs = require('fs');
 const sharp = require('sharp');
 const { prompt } = require('enquirer');
-const PNG = require('pngjs').PNG;
 var Module = require('../build/NftMarkerCreator_wasm.js');
 
 // GLOBAL VARs
@@ -114,11 +113,8 @@ Module.onRuntimeInitialized = async function () {
         fs.mkdirSync(path.join(__dirname, outputPath));
     }
 
-    if (extName.toLowerCase() === ".jpg" || extName.toLowerCase() === ".jpeg") {
-        //await useJPG(buffer)
-        await useJPG_w_sharp(buffer);
-    } else if (extName.toLowerCase() === ".png") {
-        await usePNG(buffer);
+    if (extName.toLowerCase() === ".jpg" || extName.toLowerCase() === ".jpeg" || extName.toLowerCase() === ".png") {
+        await processImage(buffer);
     }
 
     let confidence = calculateQuality();
@@ -149,7 +145,6 @@ Module.onRuntimeInitialized = async function () {
     let paramStr = params.join(' ');
 
     let StrBuffer = Module._malloc(paramStr.length + 1);
-    //Module.writeStringToMemory(paramStr, StrBuffer);
     Module.stringToUTF8(paramStr, StrBuffer);
 
     console.log('Write Success');
@@ -189,7 +184,6 @@ Module.onRuntimeInitialized = async function () {
         let strObj = JSON.stringify(obj);
 
         let StrBufferZip = Module._malloc(strObj.length + 1);
-        //Module.writeStringToMemory(strObj, StrBufferZip);
         Module.stringToUTF8(strObj, StrBufferZip);
 
         Module._compressZip(StrBufferZip, strObj.length);
@@ -266,7 +260,7 @@ Module.onRuntimeInitialized = async function () {
     process.exit(0);
 }
 
-async function useJPG_w_sharp(buf) {
+async function processImage(buf) {
     const image = sharp(buf);
     await image.metadata()
         .then(async metadata => {
@@ -338,70 +332,6 @@ async function extractMetadata(buf) {
             console.error("Error extracting metadata: " + err);
             process.exit(1);
         });
-}
-
-async function usePNG(buf) {
-    let data;
-    var png = PNG.sync.read(buf);
-
-    var arrByte = new Uint8Array(png.data);
-    if (png.alpha) {
-        data = rgbaToRgb(arrByte);
-    } else {
-        data = arrByte;
-    }
-
-    let newArr = [];
-
-    let verifyColorSpace = detectColorSpace(data);
-
-    if (verifyColorSpace === 1) {
-        for (let j = 0; j < data.length; j += 4) {
-            newArr.push(data[j]);
-        }
-    } else if (verifyColorSpace === 3) {
-        for (let j = 0; j < data.length; j += 4) {
-            newArr.push(data[j]);
-            newArr.push(data[j + 1]);
-            newArr.push(data[j + 2]);
-        }
-    }
-
-    let uint = new Uint8Array(newArr);
-
-    imageData.array = uint;
-    imageData.nc = verifyColorSpace;
-    imageData.sizeX = png.width;
-    imageData.sizeY = png.height;
-    await extractMetadata(buf);
-}
-
-function getValues(str, type) {
-    let values;
-    if (type == "wh") {
-        let Wstr = "W=";
-        let Hstr = "H=";
-        var doesContainW = str.indexOf(Wstr);
-        var doesContainH = str.indexOf(Hstr);
-
-        let valW = parseInt(str.slice(doesContainW + 2, doesContainH));
-        let valH = parseInt(str.slice(doesContainH + 2));
-
-        values = {
-            w: valW,
-            h: valH
-        }
-    } else if (type == "nc") {
-        let nc = "NC=";
-        var doesContainNC = str.indexOf(nc);
-        values = parseInt(str.slice(doesContainNC + 3));
-    } else if (type == "dpi") {
-        let dpi = "DPI=";
-        var doesContainDPI = str.indexOf(dpi);
-        values = parseInt(str.slice(doesContainDPI + 4));
-    }
-
-    return values;
 }
 
 function detectColorSpace(arr) {
