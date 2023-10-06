@@ -1,21 +1,21 @@
 {
   "name": "nft-marker-creator-app",
   "version": "0.1.0",
-  "main": "src/NFTCreator.js",
-  "description": "NFt Marker Creator based on ARToolKit, ported thanks to Emscripten",
+  "main": "src/NFTMarkerCreator.js",
+  "description": "NFt Marker Creator based on WebARKitLib, ported thanks to Emscripten",
   "keywords": [
     "ARToolKit",
+    "WebARKitLib",
     "WebARKit",
     "WebAR",
     "AR",
     "Augmented Reality",
     "NFT"
   ],
-  "author": "Carnaux (https://github.com/Carnaux)",
+  "author": "@kalwalt https://github.com/kalwalt",
   "repository": "https://github.com/webarkit/NFT-Marker-Creator-App.git",
   "homepage": "https://github.com/webarkit/NFT-Marker-Creator-App",
   "contributors": [
-    "@kalwalt https://github.com/kalwalt"
   ],
   "bugs": {
     "url": "https://github.com/webarkit/NFT-Marker-Creator-App/issues"
@@ -23,13 +23,11 @@
   "dependencies": {
     "enquirer": "^2.4.1",
     "express": "^4.18.2",
-    "pngjs": "^7.0.0",
     "sharp": "0.32.6"
   },
   "scripts": {
     "build-local": "node tools/makem.js; echo Built at `date`",
-    "demo": "cd demo && node demoServer.js",
-    "watch": "./node_modules/.bin/watch 'npm run build' ./src/"
+    "demo": "cd demo && node demoServer.js"
   },
   "license": "LGPL-3.0"
 }
