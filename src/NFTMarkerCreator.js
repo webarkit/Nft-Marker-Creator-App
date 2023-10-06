@@ -306,16 +306,28 @@ async function useJPG(buf) {
 async function useJPG_w_sharp(buf) {
     const image = sharp(buf);
     await image.metadata()
-        .then(metadata => {
+        .then(async metadata => {
             if (metadata.density) {
                 imageData.dpi = metadata.density;
             } else {
-                console.log("\nWARNING: No DPI value found! Using 72 as default value!\n");
-                imageData.dpi = 72;
+                console.log("\nWARNING: No DPI value found! Using 150 as default value!\n");
+                imageData.dpi = 150;
             }
-            imageData.sizeX = metadata.width;
-            imageData.sizeY = metadata.height;
-            imageData.nc = metadata.channels;
+            if(metadata.width){
+                imageData.sizeX = metadata.width;
+            } else {
+                await metadataWidth();
+            }
+            if(metadata.height){
+                imageData.sizeY = metadata.height;
+            } else {
+                await metadataHeigth();
+            }
+            if(metadata.channels){
+                imageData.nc = metadata.channels;
+            } else {
+                await metadataChannels();
+            }
             return image
             .raw()
             .toBuffer()
@@ -471,8 +483,8 @@ async function extractMetadata(buf) {
             if (metadata.density) {
                 imageData.dpi = metadata.density;
             } else {
-                console.log("\nWARNING: No DPI value found! Using 72 as default value!\n");
-                imageData.dpi = 72;
+                console.log("\nWARNING: No DPI value found! Using 150 as default value!\n");
+                imageData.dpi = 150;
             }
             imageData.sizeX = metadata.width;
             imageData.sizeY = metadata.height;
@@ -666,5 +678,71 @@ async function askToContinue() {
     if (response.answer == "n") {
         console.log("\nProcess finished by the user! \n");
         process.exit(1);
+    }
+}
+
+async function metadataWidth() {
+    const responseToProceed = await prompt({
+        type: 'input',
+        name: 'answer',
+        message: 'Metadata width not present do you want to inform it? (Y/N)\n'
+      });
+
+    if (responseToProceed.answer == "n") {
+        console.log("\nProcess finished by the user! \n");
+        process.exit(1);
+    } else {
+        const responseAfterEnquiry = await prompt({
+            type: 'input',
+            name: 'width',
+            message: 'Inform the width: e.g 200\n'
+          });
+        if (responseAfterEnquiry.width) {
+            imageData.sizeX = responseAfterEnquiry.width;
+        }
+    }
+}
+
+async function metadataHeigth() {
+    const responseToProceed = await prompt({
+        type: 'input',
+        name: 'answer',
+        message: 'Metadata height not present do you want to inform it? (Y/N)\n'
+      });
+
+    if (responseToProceed.answer == "n") {
+        console.log("\nProcess finished by the user! \n");
+        process.exit(1);
+    } else {
+        const responseAfterEnquiry = await prompt({
+            type: 'input',
+            name: 'height',
+            message: 'Inform the height: e.g 400\n'
+          });
+        if (responseAfterEnquiry.height) {
+            imageData.sizeY = responseAfterEnquiry.height;
+        }
+    }
+}
+
+async function metadataChannels() {
+    const responseToProceed = await prompt({
+        type: 'input',
+        name: 'answer',
+        message: 'Metadata channels not present do you want to inform it? (Y/N)\n'
+      });
+
+    if (responseToProceed.answer == "n") {
+        console.log("\nProcess finished by the user! \n");
+        process.exit(1);
+    } else {
+        const responseAfterEnquiry = await prompt({
+            type: 'input',
+            name: 'channels',
+            message: 'Inform the number of channels: e.g 3\n'
+          });
+        if (responseAfterEnquiry.channels) {
+            imageData.nc = responseAfterEnquiry.channels;
+        }
     }
 }
