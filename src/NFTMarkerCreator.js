@@ -1,10 +1,7 @@
 const path = require("path");
 const fs = require('fs');
 const sharp = require('sharp');
-const readlineSync = require('readline-sync');
 const { prompt } = require('enquirer');
-//const inkjet = require('inkjet');
-//const im = require('imagemagick');
 const PNG = require('pngjs').PNG;
 var Module = require('../build/NftMarkerCreator_wasm.js');
 
@@ -269,40 +266,6 @@ Module.onRuntimeInitialized = async function () {
     process.exit(0);
 }
 
-/*
-async function useJPG(buf) {
-    inkjet.decode(buf, function (err, decoded) {
-        if (err) {
-            console.error("\n" + err + "\n");
-            process.exit(1);
-        } else {
-            let newArr = [];
-
-            let verifyColorSpace = detectColorSpace(decoded.data);
-
-            if (verifyColorSpace === 1) {
-                for (let j = 0; j < decoded.data.length; j += 4) {
-                    newArr.push(decoded.data[j]);
-                }
-            } else if (verifyColorSpace === 3) {
-                for (let j = 0; j < decoded.data.length; j += 4) {
-                    newArr.push(decoded.data[j]);
-                    newArr.push(decoded.data[j + 1]);
-                    newArr.push(decoded.data[j + 2]);
-                }
-            }
-
-            let uint = new Uint8Array(newArr);
-            imageData.nc = verifyColorSpace;
-            imageData.array = uint;
-        }
-    });
-
-    //await extractExif(buf);
-    await extractMetadata(buf);
-}
-*/
-
 async function useJPG_w_sharp(buf) {
     const image = sharp(buf);
     await image.metadata()
@@ -359,124 +322,6 @@ async function useJPG_w_sharp(buf) {
         });
 }
 
-/*function extractExif(buf) {
-    return new Promise((resolve, reject) => {
-
-        inkjet.exif(buf, async function (err, metadata) {
-            if (err) {
-                console.error("\n    ERROR HAPPENED" + err + "\n");
-                process.exit(1);
-            }
-            else {
-                if (metadata == null || Object.keys(metadata).length === undefined || Object.keys(metadata).length <= 0) {
-                    console.log(metadata);
-                    let ret = await imageMagickIdentify(srcImage);
-                    console.log('ret:', ret);
-                    {
-                        if (ret.err) {
-                            console.log(ret.err);
-                            var answer = readlineSync.question('The EXIF info of this image is empty or it does not exist. Do you want to inform its properties manually?[y/n]\n');
-
-                            if (answer == "y") {
-                                var answerWH = readlineSync.question('Inform the width and height: e.g W=200 H=400\n');
-
-                                let valWH = getValues(answerWH, "wh");
-                                imageData.sizeX = valWH.w;
-                                imageData.sizeY = valWH.h;
-
-                                var answerDPI = readlineSync.question('Inform the DPI: e.g DPI=220 [Default = 72](Press enter to use default)\n');
-
-                                if (answerDPI == "") {
-                                    imageData.dpi = 72;
-                                } else {
-                                    let val = getValues(answerDPI, "dpi");
-                                    imageData.dpi = val;
-                                }
-                            } else {
-                                console.log("Exiting process!")
-                                process.exit(1);
-                            }
-                        } else {
-
-                            imageData.sizeX = ret.features.width;
-                            imageData.sizeY = ret.features.height;
-                            var resolution = ret.features.resolution;
-                            let dpi = null;
-                            if (resolution) {
-                                let resolutions = resolution.split('x');
-                                if (resolutions.length === 2) {
-                                    dpi = Math.min(parseInt(resolutions[0]), parseInt(resolutions[1]));
-                                    if (dpi == null || isNaN(dpi)) {
-                                        // console.log("\nWARNING: No DPI value found! Using 72 as default value!\n")
-                                        dpi = 72;
-                                    }
-                                }
-
-                            } else {
-                                dpi = 72;
-                            }
-
-                            imageData.dpi = dpi;
-                        }
-                    }
-                } else {
-                    let dpi = 72;
-
-                    if (metadata['XResolution'] != null) {
-                        dpi = Math.min(parseInt(metadata['XResolution'].description), parseInt(metadata['YResolution'].description));
-                    } else {
-                        console.log("\nWARNING: No DPI value found! Using 72 as default value!\n");
-                    }
-
-                    if (metadata['Image Width'] == null || metadata['Image Width'] === undefined) {
-                        if (metadata['PixelXDimension'].value == null || metadata['PixelXDimension'].value === undefined) {
-                            var answer = readlineSync.question('The image does not contain any width or height info, do you want to inform them?[y/n]\n');
-                            if (answer === "y") {
-                                var answer2 = readlineSync.question('Inform the width and height: e.g W=200 H=400\n');
-
-                                let vals = getValues(answer2, "wh");
-                                imageData.sizeX = vals.w;
-                                imageData.sizeY = vals.h;
-                            } else {
-                                console.log("It's not possible to proceed without width or height info!")
-                                process.exit(1);
-                            }
-                        } else {
-                            imageData.sizeX = metadata['PixelXDimension'].value;
-                            imageData.sizeY = metadata['PixelYDimension'].value;
-                        }
-                    } else {
-                        imageData.sizeX = metadata['Image Width'].value;
-                        imageData.sizeY = metadata['Image Height'].value;
-                    }
-                    // if (metadata['Color Components'].value == null || metadata['Image Width'].value === undefined) {
-                    //     // var answer = readlineSync.question('The image does not contain the number of channels(nc), do you want to inform it?[y/n]\n');
-
-                    //     // if(answer == "y"){
-                    //     //     var answer2 = readlineSync.question('Inform the number of channels(nc):(black and white images have NC=1, colored images have NC=3) e.g NC=3 \n');
-
-                    //     //     let vals = getValues(answer2, "nc");
-                    //     //     imageData.nc = vals;
-                    //     // }else{
-                    //     //     console.log("It's not possible to proceed without the number of channels!")
-                    //     //     process.exit(1);
-                    //     // }
-                    // } else {
-                    //    // imageData.nc = metadata[ 'Bits Per Sample'].value ;
-                    //     imageData.nc = metadata[ 'Color Components'].value ;
-                    // }
-                    imageData.nc = metadata['Color Components'].value;
-                    imageData.dpi = dpi;
-                }
-            }
-
-            resolve(true);
-        });
-    })
-
-}
-*/
-
 async function extractMetadata(buf) {
     return await sharp(buf).metadata()
         .then(function (metadata) {
@@ -530,17 +375,6 @@ async function usePNG(buf) {
     imageData.sizeY = png.height;
     await extractMetadata(buf);
 }
-
-/*
-function imageMagickIdentify(srcImage) {
-    return new Promise((resolve, reject) => {
-        im.identify(srcImage, function (err, features) {
-            resolve({ err: err, features: features });
-            console.log('features:', features);
-        })
-    })
-}
-*/
 
 function getValues(str, type) {
     let values;
