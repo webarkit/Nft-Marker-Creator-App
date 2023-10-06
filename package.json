@@ -1,5 +1,5 @@
 {
-  "name": "nft-marker-creator-app",
+  "name": "@webarkit/nft-marker-creator-app",
   "version": "0.1.0",
   "main": "src/NFTMarkerCreator.js",
   "description": "NFt Marker Creator based on WebARKitLib, ported thanks to Emscripten",
