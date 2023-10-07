@@ -66,6 +66,7 @@
 #  include <unistd.h>
 #endif
 #include <time.h> // time(), localtime(), strftime()
+#include <chrono>
 
 #define          KPM_SURF_FEATURE_DENSITY_L0    70
 #define          KPM_SURF_FEATURE_DENSITY_L1   100
@@ -232,6 +233,8 @@ int EMSCRIPTEN_KEEPALIVE createNftDataSet(ARUint8 *imageIn, float dpiIn, int xsi
                 ARLOGi("--\nGenerator started at %s\n", stime);
         }
     }
+
+    std::chrono::high_resolution_clock::time_point duration_start = std::chrono::high_resolution_clock::now();
 
     if (genfset) {
         if (tracking_extraction_level == -1){
@@ -445,6 +448,13 @@ int EMSCRIPTEN_KEEPALIVE createNftDataSet(ARUint8 *imageIn, float dpiIn, int xsi
                 ARLOGi("Generator finished at %s\n--\n", stime);
         }
     }
+
+    std::chrono::high_resolution_clock::time_point duration_end = std::chrono::high_resolution_clock::now();
+
+    std::chrono::duration<double, std::milli> duration = (duration_end - duration_start);
+
+    ARLOGi("NFTMarkerGenerator took %f milliseconds to execute\n", duration.count());
+
 
     exitcode = E_NO_ERROR;
     return (exitcode);
