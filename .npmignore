@@ -1,0 +1,6 @@
+build/*.bc
+emscripten/
+src/*.jpg
+src/*.png
+src/output/
+tools/
