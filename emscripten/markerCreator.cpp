@@ -129,7 +129,7 @@ static char exitcode = -1;
         exit(c);      \
     }
 
-static void usage(char *com);
+static void usage(const char *com);
 static int setDPI(void);
 
 extern "C"
@@ -241,7 +241,7 @@ extern "C"
             usage("Marker Generator");
         }
 
-        char *filename = "tempFilename";
+        char *filename = strdup("tempFilename");
 
         // Print the start date and time.
         clock = time(NULL);
@@ -460,7 +460,7 @@ extern "C"
             ARLOGi("  Done.\n");
 
             ARLOGi("Saving FeatureSet...\n");
-            if (ar2SaveFeatureSet(filename, "fset", featureSet) < 0)
+            if (ar2SaveFeatureSet(filename, strdup("fset"), featureSet) < 0)
             {
                 ARLOGe("Save error: %s.fset\n", filename);
                 EXIT(E_DATA_PROCESSING_ERROR);
@@ -605,7 +605,7 @@ extern "C"
         return 0;
     }
 
-    static void usage(char *com)
+    static void usage(const char *com)
     {
         if (!background)
         {
