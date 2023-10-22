@@ -104,7 +104,7 @@ if (HAVE_NFT) {
 
 
 var DEFINES = ' ';
-if (HAVE_NFT) DEFINES += ' -D HAVE_NFT ';
+if (HAVE_NFT) DEFINES += ' -D HAVE_NFT -D HAVE_THREADING ';
 
 var FLAGS = '' + OPTIMIZE_FLAGS;
 // var FLAGS = '';
@@ -182,7 +182,7 @@ var compile_combine_min = format(EMCC + ' '  + INCLUDES + ' '
 
 var compile_wasm = format(EMCC + ' ' + INCLUDES + ' '
 	+ ' {OUTPUT_PATH}libar.bc ' + MAIN_SOURCES + EXPORTED_FUNCTIONS
-	+ FLAGS + WASM_FLAGS + SINGLE_FILE_FLAG + DEFINES + ' -std=c++11 ' + ' -o {OUTPUT_PATH}{BUILD_FILE} ',
+	+ FLAGS + WASM_FLAGS + SINGLE_FILE_FLAG + DEFINES + ' -std=c++11 -pthread ' + ' -o {OUTPUT_PATH}{BUILD_FILE} ',
 	 OUTPUT_PATH, OUTPUT_PATH, BUILD_WASM_FILE);
 
 /*
