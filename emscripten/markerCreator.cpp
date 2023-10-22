@@ -68,6 +68,11 @@
 #include <time.h> // time(), localtime(), strftime()
 #include <chrono>
 
+#ifdef HAVE_THREADING
+#include <thread>
+#include <mutex>
+#endif
+
 #define KPM_SURF_FEATURE_DENSITY_L0 70
 #define KPM_SURF_FEATURE_DENSITY_L1 100
 #define KPM_SURF_FEATURE_DENSITY_L2 150
@@ -128,6 +133,10 @@ static char exitcode = -1;
         exitcode = c; \
         exit(c);      \
     }
+
+#ifdef HAVE_THREADING
+std::mutex m{};
+#endif
 
 static void usage(const char *com);
 static int setDPI(void);
@@ -358,7 +367,14 @@ extern "C"
 
         ARLOGi("Generating ImageSet...\n");
         ARLOGi("   (Source image xsize=%d, ysize=%d, channels=%d, dpi=%.1f).\n", xsize, ysize, nc, dpi);
+#ifdef HAVE_THREADING
+        ARLOGi("   (Threading enabled).\n");
+        m.lock();
+#endif
         imageSet = ar2GenImageSet(image, xsize, ysize, nc, dpi, dpi_list, dpi_num);
+#ifdef HAVE_THREADING
+        m.unlock();
+#endif
         ar2FreeJpegImage(&jpegImage);
         if (imageSet == NULL)
         {
@@ -388,10 +404,19 @@ extern "C"
             {
                 ARLOGi("Start for %f dpi image.\n", imageSet->scale[i]->dpi);
 
+                #ifdef HAVE_THREADING
+                    m.lock();
+                #endif
+
                 featureMap = ar2GenFeatureMap(imageSet->scale[i],
                                               AR2_DEFAULT_TS1 * AR2_TEMP_SCALE, AR2_DEFAULT_TS2 * AR2_TEMP_SCALE,
                                               AR2_DEFAULT_GEN_FEATURE_MAP_SEARCH_SIZE1, AR2_DEFAULT_GEN_FEATURE_MAP_SEARCH_SIZE2,
                                               AR2_DEFAULT_MAX_SIM_THRESH2, AR2_DEFAULT_SD_THRESH2);
+
+                #ifdef HAVE_THREADING
+                    m.unlock();
+                #endif
+
                 if (featureMap == NULL)
                 {
                     ARLOGe("Error!!\n");
@@ -484,7 +509,7 @@ extern "C"
 #if AR2_CAPABLE_ADAPTIVE_TEMPLATE
                         imageSet->scale[i]->imgBWBlur[1],
 #else
-                         imageSet->scale[i]->imgBW,
+                        imageSet->scale[i]->imgBW,
 #endif
                         imageSet->scale[i]->xsize,
                         imageSet->scale[i]->ysize,
