@@ -85,4 +85,10 @@ e.g ` node app.js -i image.png -level=4 -min_thresh=8 `
 
 ## Build
 Build emscripten files with docker:
-docker run --rm -v $(pwd):/src -u $(id -u):$(id -g) -e "EMSCRIPTEN=/emsdk/upstream/emscripten"  emscripten/emsdk:3.1.26 npm run build-local
+
+    docker run --rm -v $(pwd):/src -u $(id -u):$(id -g) -e "EMSCRIPTEN=/emsdk/upstream/emscripten"  emscripten/emsdk:3.1.26 npm run build-local
+
+or better create a docker container and run the build command inside it:
+
+    docker run -dit --name emscripten-nft-marker-creator-app -v $(pwd):/src emscripten/emsdk:3.1.26 bash
+    docker exec emscripten-nft-marker-creator-app npm run build-local
