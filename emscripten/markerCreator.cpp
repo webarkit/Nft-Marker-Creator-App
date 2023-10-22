@@ -130,9 +130,7 @@ static char exitcode = -1;
     }
 
 static void usage(char *com);
-static int readImageFromFile(const char *filename, ARUint8 **image_p, int *xsize_p, int *ysize_p, int *nc_p, float *dpi_p);
 static int setDPI(void);
-static void write_exitcode(void);
 
 extern "C"
 {
@@ -635,90 +633,6 @@ extern "C"
         }
 
         EXIT(E_BAD_PARAMETER);
-    }
-
-    static int readImageFromFile(const char *filename, ARUint8 **image_p, int *xsize_p, int *ysize_p, int *nc_p, float *dpi_p)
-    {
-        char *ext;
-        char buf[256];
-        char buf1[512], buf2[512];
-
-        if (!filename || !image_p || !xsize_p || !ysize_p || !nc_p || !dpi_p)
-            return (E_BAD_PARAMETER);
-
-        ext = arUtilGetFileExtensionFromPath(filename, 1);
-        if (!ext)
-        {
-            ARLOGe("Error: unable to determine extension of file '%s'. Exiting.\n", filename);
-            EXIT(E_INPUT_DATA_ERROR);
-        }
-        if (strcmp(ext, "jpeg") == 0 || strcmp(ext, "jpg") == 0 || strcmp(ext, "jpe") == 0)
-        {
-
-            ARLOGi("Reading JPEG file...\n");
-            ar2UtilDivideExt(filename, buf1, buf2);
-            jpegImage = ar2ReadJpegImage(buf1, buf2);
-            if (jpegImage == NULL)
-            {
-                ARLOGe("Error: unable to read JPEG image from file '%s'. Exiting.\n", filename);
-                EXIT(E_INPUT_DATA_ERROR);
-            }
-            ARLOGi("   Done.\n");
-
-            *image_p = jpegImage->image;
-            if (jpegImage->nc != 1 && jpegImage->nc != 3)
-            {
-                ARLOGe("Error: Input JPEG image is in neither RGB nor grayscale format. %d bytes/pixel %sformat is unsupported. Exiting.\n", jpegImage->nc, (jpegImage->nc == 4 ? "(possibly CMYK) " : ""));
-                EXIT(E_INPUT_DATA_ERROR);
-            }
-            *nc_p = jpegImage->nc;
-            ARLOGi("JPEG image '%s' is %dx%d.\n", filename, jpegImage->xsize, jpegImage->ysize);
-            if (jpegImage->xsize < KPM_MINIMUM_IMAGE_SIZE || jpegImage->ysize < KPM_MINIMUM_IMAGE_SIZE)
-            {
-                ARLOGe("Error: JPEG image width and height must be at least %d pixels. Exiting.\n", KPM_MINIMUM_IMAGE_SIZE);
-                EXIT(E_INPUT_DATA_ERROR);
-            }
-            *xsize_p = jpegImage->xsize;
-            *ysize_p = jpegImage->ysize;
-            if (*dpi_p == -1.0)
-            {
-                if (jpegImage->dpi == 0.0f)
-                {
-                    for (;;)
-                    {
-                        printf("JPEG image '%s' does not contain embedded resolution data, and no resolution specified on command-line.\nEnter resolution to use (in decimal DPI): ", filename);
-                        if (fgets(buf, 256, stdin) == NULL)
-                        {
-                            EXIT(E_USER_INPUT_CANCELLED);
-                        }
-                        if (sscanf(buf, "%f", &(jpegImage->dpi)) == 1)
-                            break;
-                    }
-                }
-                *dpi_p = jpegImage->dpi;
-            }
-
-            //} else if (strcmp(ext, "png") == 0) {
-        }
-        else
-        {
-            ARLOGe("Error: file '%s' has extension '%s', which is not supported for reading. Exiting.\n", filename, ext);
-            free(ext);
-            EXIT(E_INPUT_DATA_ERROR);
-        }
-        free(ext);
-
-        return 0;
-    }
-
-    static void write_exitcode(void)
-    {
-        if (exitcodefile[0])
-        {
-            FILE *fp = fopen(exitcodefile, "w");
-            fprintf(fp, "%d\n", exitcode);
-            fclose(fp);
-        }
     }
 
 } // extern "C"
