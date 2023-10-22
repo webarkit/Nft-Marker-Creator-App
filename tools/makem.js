@@ -33,8 +33,8 @@ var BUILD_WASM_FILE = 'NftMarkerCreator_wasm.js';
 var BUILD_MIN_FILE = 'NftMarkerCreator.min.js';
 
 var MAIN_SOURCES = [
-	'markerCreator.c',
-	'markerCompress.c'
+	'markerCreator.cpp',
+	'markerCompress.cpp'
 ];
 
 MAIN_SOURCES = MAIN_SOURCES.map(function(src) {
@@ -126,7 +126,7 @@ var WASM_FLAGS = ' -s WASM=1 ';
 
 var SINGLE_FILE_FLAG = ' -s SINGLE_FILE=1 ';
 
-var EXPORTED_FUNCTIONS = ' -s EXPORTED_FUNCTIONS=["_createNftDataSet,_free"] -s EXPORTED_RUNTIME_METHODS=["FS,stringToUTF8"] ';
+var EXPORTED_FUNCTIONS = ' -s EXPORTED_FUNCTIONS=["_createNftDataSet,_compressZip,_free"] -s EXPORTED_RUNTIME_METHODS=["FS,stringToUTF8"] ';
 
 /* DEBUG FLAGS */
 var DEBUG_FLAGS = ' -g ';
@@ -182,7 +182,7 @@ var compile_combine_min = format(EMCC + ' '  + INCLUDES + ' '
 
 var compile_wasm = format(EMCC + ' ' + INCLUDES + ' '
 	+ ' {OUTPUT_PATH}libar.bc ' + MAIN_SOURCES + EXPORTED_FUNCTIONS
-	+ FLAGS + WASM_FLAGS + SINGLE_FILE_FLAG + DEFINES + ' -o {OUTPUT_PATH}{BUILD_FILE} ',
+	+ FLAGS + WASM_FLAGS + SINGLE_FILE_FLAG + DEFINES + ' -std=c++11 ' + ' -o {OUTPUT_PATH}{BUILD_FILE} ',
 	 OUTPUT_PATH, OUTPUT_PATH, BUILD_WASM_FILE);
 
 /*
