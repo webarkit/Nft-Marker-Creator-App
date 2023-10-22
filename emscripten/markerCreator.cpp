@@ -524,9 +524,9 @@ extern "C"
 
         std::chrono::high_resolution_clock::time_point duration_end = std::chrono::high_resolution_clock::now();
 
-        std::chrono::duration<double, std::milli> duration = (duration_end - duration_start);
+        std::chrono::duration<double> duration = (duration_end - duration_start);
 
-        ARLOGi("NFTMarkerGenerator took %f milliseconds to execute\n", duration.count());
+        ARLOGi("NFTMarkerGenerator took %f seconds to execute\n", duration.count());
 
         exitcode = E_NO_ERROR;
         return (exitcode);
