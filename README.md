@@ -92,3 +92,6 @@ or better create a docker container and run the build command inside it:
 
     docker run -dit --name emscripten-nft-marker-creator-app -v $(pwd):/src emscripten/emsdk:3.1.26 bash
     docker exec emscripten-nft-marker-creator-app npm run build-local
+
+## Planned Features
+- [ ] Multi threading support to speed up the creation of the markers.
