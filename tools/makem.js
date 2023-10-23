@@ -28,8 +28,8 @@ var MEM = (256 *1024 * 1024) ; // 64MB
 var SOURCE_PATH = path.resolve(__dirname, '../emscripten/') + '/';
 var OUTPUT_PATH = path.resolve(__dirname, '../build/') + '/';
 
-var BUILD_DEBUG_FILE = 'NftMarkerCreator.debug.js';
 var BUILD_WASM_FILE = 'NftMarkerCreator_wasm.js';
+var BUILD_WASM_TD_FILE = 'NftMarkerCreator_wasm.thread.js';
 var BUILD_MIN_FILE = 'NftMarkerCreator.min.js';
 
 var MAIN_SOURCES = [
@@ -104,7 +104,9 @@ if (HAVE_NFT) {
 
 
 var DEFINES = ' ';
-if (HAVE_NFT) DEFINES += ' -D HAVE_NFT -D HAVE_THREADING ';
+if (HAVE_NFT) DEFINES += ' -D HAVE_NFT ';
+
+var TD = ' -D HAVE_THREADING '
 
 var FLAGS = '' + OPTIMIZE_FLAGS;
 // var FLAGS = '';
@@ -182,8 +184,13 @@ var compile_combine_min = format(EMCC + ' '  + INCLUDES + ' '
 
 var compile_wasm = format(EMCC + ' ' + INCLUDES + ' '
 	+ ' {OUTPUT_PATH}libar.bc ' + MAIN_SOURCES + EXPORTED_FUNCTIONS
-	+ FLAGS + WASM_FLAGS + SINGLE_FILE_FLAG + DEFINES + ' -std=c++11 -pthread ' + ' -o {OUTPUT_PATH}{BUILD_FILE} ',
+	+ FLAGS + WASM_FLAGS + SINGLE_FILE_FLAG + DEFINES + ' -std=c++11 ' + ' -o {OUTPUT_PATH}{BUILD_FILE} ',
 	 OUTPUT_PATH, OUTPUT_PATH, BUILD_WASM_FILE);
+
+var compile_wasm_td = format(EMCC + ' ' + INCLUDES + ' '
+	 + ' {OUTPUT_PATH}libar.bc ' + MAIN_SOURCES + EXPORTED_FUNCTIONS
+	 + FLAGS + WASM_FLAGS + SINGLE_FILE_FLAG + DEFINES + TD + ' -std=c++11 -pthread ' + ' -o {OUTPUT_PATH}{BUILD_FILE} ',
+	  OUTPUT_PATH, OUTPUT_PATH, BUILD_WASM_TD_FILE);
 
 /*
  * Run commands
@@ -226,6 +233,7 @@ function addJob(job) {
 addJob(clean_builds);
 addJob(compile_arlib);
 addJob(compile_wasm);
+addJob(compile_wasm_td);
 addJob(compile_combine_min);
 
 runJob();
