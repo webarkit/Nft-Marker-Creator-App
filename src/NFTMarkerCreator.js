@@ -12,7 +12,7 @@ var validImageExt = [".jpg", ".jpeg", ".png"];
 
 var srcImage;
 
-var outputPath = '/output/';
+var outputPath = 'output/';
 
 var buffer;
 
@@ -40,6 +40,7 @@ var imageData = {
 }
 
 Module.onRuntimeInitialized = async function () {
+    console.log('arguments...: ', process.argv);
 
     for (let j = 2; j < process.argv.length; j++) {
         if (process.argv[j].indexOf('-i') !== -1 || process.argv[j].indexOf('-I') !== -1) {
@@ -69,18 +70,39 @@ Module.onRuntimeInitialized = async function () {
             type: 'input',
             name: 'inputPath',
             message: 'Image path not present, to continue provide a path to image:'
-          });
-        srcImage = path.join(__dirname, response.inputPath);
+        });
+        srcImage = response.inputPath;
     } else {
-        srcImage = path.join(__dirname, process.argv[foundInputPath.i]);
+        srcImage = process.argv[foundInputPath.i];
+    }
+
+    if (!srcImage) {
+        console.log("\nERROR: No image in INPUT command!\n e.g:(-i /PATH/TO/IMAGE)\n");
+        process.exit(1);
+    } else {
+        console.log('checking file path...: ', srcImage);
+        if (!srcImage.startsWith('/')) {
+            // Relative path
+            srcImage = path.join(__dirname, srcImage);
+        }
+
+        console.log('image path is: ', srcImage);
+        // srcImage = path.join(__dirname, process.argv[foundInputPath.i]);
     }
 
     if (foundOutputPath.b) {
         outputPath = process.argv[foundOutputPath.i];
-        if (!outputPath.startsWith('/'))
-            outputPath = '/' + outputPath;
-        if (!outputPath.endsWith('/'))
+
+        if (!outputPath.startsWith('/')) {
+            // relative path
+            outputPath = path.join(__dirname, outputPath);
+            // outputPath = '/' + outputPath;
+        }
+
+        if (!outputPath.endsWith('/')) {
             outputPath += '/';
+        }
+
         console.log('Set output path: ' + outputPath);
     }
 
@@ -108,9 +130,9 @@ Module.onRuntimeInitialized = async function () {
         buffer = fs.readFileSync(srcImage);
     }
 
-    console.log('Check output path: ' + path.join(__dirname, outputPath));
-    if (!fs.existsSync(path.join(__dirname, outputPath))) {
-        fs.mkdirSync(path.join(__dirname, outputPath));
+    console.log('Check output path: ' + outputPath);
+    if (!fs.existsSync(outputPath)) {
+        fs.mkdirSync(outputPath);
     }
 
     if (extName.toLowerCase() === ".jpg" || extName.toLowerCase() === ".jpeg" || extName.toLowerCase() === ".png") {
@@ -153,6 +175,7 @@ Module.onRuntimeInitialized = async function () {
 
     console.log('Setting Heap Success.. Continue to Create ImageSet..');
     Module._createNftDataSet(heapSpace, imageData.dpi, imageData.sizeX, imageData.sizeY, imageData.nc, StrBuffer)
+    console.log('Create NFT Dataset complete...')
 
     Module._free(heapSpace);
     Module._free(StrBuffer);
@@ -190,7 +213,8 @@ Module.onRuntimeInitialized = async function () {
 
         let contentBin = Module.FS.readFile("tempBinFile.bin");
 
-        fs.writeFileSync(path.join(__dirname, '/output/') + fileName + ".zft", contentBin);
+        // fs.writeFileSync(path.join(__dirname, '/output/') + fileName + ".zft", contentBin);
+        fs.writeFileSync(outputPath + fileName + ".zft", contentBin);
 
         Module._free(StrBufferZip);
 
@@ -223,9 +247,12 @@ Module.onRuntimeInitialized = async function () {
 
     } else {
         console.log("CREATING ISET, FSET AND FSET3 FILES");
-        fs.writeFileSync(path.join(__dirname, outputPath) + fileName + ext, content);
-        fs.writeFileSync(path.join(__dirname, outputPath) + fileName + ext2, contentFset);
-        fs.writeFileSync(path.join(__dirname, outputPath) + fileName + ext3, contentFset3);
+        // fs.writeFileSync(path.join(__dirname, outputPath) + fileName + ext, content);
+        // fs.writeFileSync(path.join(__dirname, outputPath) + fileName + ext2, contentFset);
+        // fs.writeFileSync(path.join(__dirname, outputPath) + fileName + ext3, contentFset3);
+        fs.writeFileSync(outputPath + fileName + ext, content);
+        fs.writeFileSync(outputPath + fileName + ext2, contentFset);
+        fs.writeFileSync(outputPath + fileName + ext3, contentFset3);
 
         if (withDemo) {
             console.log("\nFinished marker creation!\nNow configuring demo! \n")
@@ -286,9 +313,9 @@ async function processImage(buf) {
                 await metadataChannels();
             }
             return image
-            .raw()
-            .toBuffer()
-        })   
+                .raw()
+                .toBuffer()
+        })
         .then(data => {
             let dt = data.buffer
 
@@ -437,7 +464,7 @@ async function askToContinue() {
         type: 'input',
         name: 'answer',
         message: 'Do you want to continue? (Y/N)\n'
-      });
+    });
 
     if (response.answer == "n") {
         console.log("\nProcess finished by the user! \n");
@@ -450,7 +477,7 @@ async function metadataWidth() {
         type: 'input',
         name: 'answer',
         message: 'Metadata width not present do you want to inform it? (Y/N)\n'
-      });
+    });
 
     if (responseToProceed.answer == "n") {
         console.log("\nProcess finished by the user! \n");
@@ -460,7 +487,7 @@ async function metadataWidth() {
             type: 'input',
             name: 'width',
             message: 'Inform the width: e.g 200\n'
-          });
+        });
         if (responseAfterEnquiry.width) {
             imageData.sizeX = responseAfterEnquiry.width;
         }
@@ -472,7 +499,7 @@ async function metadataHeigth() {
         type: 'input',
         name: 'answer',
         message: 'Metadata height not present do you want to inform it? (Y/N)\n'
-      });
+    });
 
     if (responseToProceed.answer == "n") {
         console.log("\nProcess finished by the user! \n");
@@ -482,7 +509,7 @@ async function metadataHeigth() {
             type: 'input',
             name: 'height',
             message: 'Inform the height: e.g 400\n'
-          });
+        });
         if (responseAfterEnquiry.height) {
             imageData.sizeY = responseAfterEnquiry.height;
         }
@@ -494,7 +521,7 @@ async function metadataChannels() {
         type: 'input',
         name: 'answer',
         message: 'Metadata channels not present do you want to inform it? (Y/N)\n'
-      });
+    });
 
     if (responseToProceed.answer == "n") {
         console.log("\nProcess finished by the user! \n");
@@ -504,7 +531,7 @@ async function metadataChannels() {
             type: 'input',
             name: 'channels',
             message: 'Inform the number of channels: e.g 3\n'
-          });
+        });
         if (responseAfterEnquiry.channels) {
             imageData.nc = responseAfterEnquiry.channels;
         }
