@@ -4,7 +4,7 @@ LABEL authors="kalwalt"
 #ENV HOME="/root"
 ARG NVM_VERSION=v0.39.7
 ENV NVM_DIR=/usr/local/nvm
-ENV NODE_VERSION 18.16.0
+ENV NODE_VERSION 20.17.0
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends build-essential\
