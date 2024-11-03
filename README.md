@@ -83,10 +83,10 @@ e.g ` node app.js -i image.png -level=4 -min_thresh=8 `
      e.g node app.js -i image.png -Demo
 
 ## Create your NTS markers with our docker image
-First, you need docker installed in your system, if you haven't follow installation instruction: .
+First, you need docker installed in your system, if you haven't, follow the Docker engine installation [instruction](https://docs.docker.com/engine/install/) .
 Then inside the folder you want to run docker:
 
-`docker run -dit --name nft-app -v "$(pwd):/src" nft-marker-creator-app:0.1.1 bash`
+`docker run -dit --name nft-app -v "$(pwd):/src" nft-marker-creator-app:0.2.0 bash`
 
 With the docker container generate  the NFT marker:
 

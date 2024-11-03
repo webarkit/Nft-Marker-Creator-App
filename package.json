@@ -1,6 +1,6 @@
 {
   "name": "@webarkit/nft-marker-creator-app",
-  "version": "0.1.1",
+  "version": "0.2.",
   "main": "src/NFTMarkerCreator.js",
   "description": "NFt Marker Creator based on WebARKitLib, ported thanks to Emscripten",
   "keywords": [
@@ -15,14 +15,13 @@
   "author": "@kalwalt https://github.com/kalwalt",
   "repository": "https://github.com/webarkit/NFT-Marker-Creator-App.git",
   "homepage": "https://github.com/webarkit/NFT-Marker-Creator-App",
-  "contributors": [
-  ],
+  "contributors": [],
   "bugs": {
     "url": "https://github.com/webarkit/NFT-Marker-Creator-App/issues"
   },
   "dependencies": {
     "enquirer": "^2.4.1",
-    "express": "5.0.0",
+    "express": "^5.0.1",
     "sharp": "0.33.5"
   },
   "scripts": {
