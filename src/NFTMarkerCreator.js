@@ -226,12 +226,11 @@ Module.onRuntimeInitialized = async function () {
             if (!fs.existsSync(markerDir)) {
                 fs.mkdirSync(markerDir);
             }
-
-            let demoHTML = fs.readFileSync("./demo/nft.html").toString('utf8').split("\n");
+            let demoHTML = fs.readFileSync(path.join(__dirname,"./../demo/nft.html")).toString('utf8').split("\n");
             addNewMarker(demoHTML, fileName);
             let newHTML = demoHTML.join('\n');
 
-            fs.writeFileSync("./demo/nft.html", newHTML, { encoding: 'utf8', flag: 'w' });
+            fs.writeFileSync(path.join(__dirname,"./../demo/nft.html"), newHTML, { encoding: 'utf8', flag: 'w' });
 
             const files = fs.readdirSync(markerDir);
             for (const file of files) {
@@ -262,12 +261,11 @@ Module.onRuntimeInitialized = async function () {
             if (!fs.existsSync(markerDir)) {
                 fs.mkdirSync(markerDir);
             }
-
-            let demoHTML = fs.readFileSync("./../demo/nft.html").toString('utf8').split("\n");
+            let demoHTML = fs.readFileSync(path.join(__dirname,"./../demo/nft.html")).toString('utf8').split("\n");
             addNewMarker(demoHTML, fileName);
             let newHTML = demoHTML.join('\n');
 
-            fs.writeFileSync("./../demo/nft.html", newHTML, { encoding: 'utf8', flag: 'w' });
+            fs.writeFileSync(path.join(__dirname,"./../demo/nft.html"), newHTML, { encoding: 'utf8', flag: 'w' });
 
             const files = fs.readdirSync(markerDir);
             for (const file of files) {
