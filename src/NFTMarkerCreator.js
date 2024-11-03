@@ -2,42 +2,41 @@ const path = require("path");
 const fs = require('fs');
 const sharp = require('sharp');
 const { prompt } = require('enquirer');
-var Module = require('../build/NftMarkerCreator_wasm.js');
+const Module = require('../build/NftMarkerCreator_wasm.js');
 
 // GLOBAL VARs
-var params = [
-];
+const params = [];
 
-var validImageExt = [".jpg", ".jpeg", ".png"];
+const validImageExt = [".jpg", ".jpeg", ".png"];
 
-var srcImage;
+let srcImage;
 
-var outputPath = 'output/';
+let outputPath = 'output/';
 
-var buffer;
+let buffer;
 
-var foundInputPath = {
+const foundInputPath = {
     b: false,
     i: -1
-}
+};
 
-var foundOutputPath = {
+const foundOutputPath = {
     b: false,
     i: -1
-}
+};
 
-var noConf = false;
-var withDemo = false;
-var onlyConfidence = false;
-var isZFT = false;
+let noConf = false;
+let withDemo = false;
+let onlyConfidence = false;
+let isZFT = false;
 
-var imageData = {
+const imageData = {
     sizeX: 0,
     sizeY: 0,
     nc: 0,
     dpi: 0,
     array: []
-}
+};
 
 Module.onRuntimeInitialized = async function () {
     console.log('arguments...: ', process.argv);
@@ -142,7 +141,7 @@ Module.onRuntimeInitialized = async function () {
     let confidence = calculateQuality();
 
     let txt = " - - - - - ";
-    if (confidence.l != 0) {
+    if (confidence.l !== 0) {
         let str = txt.split(" ");
         str.pop();
         str.shift();
@@ -464,7 +463,7 @@ async function askToContinue() {
         message: 'Do you want to continue? (Y/N)\n'
     });
 
-    if (response.answer == "n") {
+    if (response.answer === "n") {
         console.log("\nProcess finished by the user! \n");
         process.exit(1);
     }
@@ -477,7 +476,7 @@ async function metadataWidth() {
         message: 'Metadata width not present do you want to inform it? (Y/N)\n'
     });
 
-    if (responseToProceed.answer == "n") {
+    if (responseToProceed.answer === "n") {
         console.log("\nProcess finished by the user! \n");
         process.exit(1);
     } else {
@@ -499,7 +498,7 @@ async function metadataHeigth() {
         message: 'Metadata height not present do you want to inform it? (Y/N)\n'
     });
 
-    if (responseToProceed.answer == "n") {
+    if (responseToProceed.answer === "n") {
         console.log("\nProcess finished by the user! \n");
         process.exit(1);
     } else {
@@ -521,7 +520,7 @@ async function metadataChannels() {
         message: 'Metadata channels not present do you want to inform it? (Y/N)\n'
     });
 
-    if (responseToProceed.answer == "n") {
+    if (responseToProceed.answer === "n") {
         console.log("\nProcess finished by the user! \n");
         process.exit(1);
     } else {
