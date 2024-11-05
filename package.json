@@ -27,7 +27,7 @@
   "scripts": {
     "test": "jest",
     "build-local": "node tools/makem.js; echo Built at `date`",
-    "build-docker":  "docker exec emscripten-nft-marker-creator-app npm run build-local",
+    "build-docker": "docker exec emscripten-nft-marker-creator-app npm run build-local",
     "demo": "cd demo && node demoServer.js",
     "format": "prettier --write \"**/*.{js,json,css,md}\"",
     "check-format": "prettier --check \"**/*.{js,json,css,md}\"",

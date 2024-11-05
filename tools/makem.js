@@ -128,7 +128,7 @@ var WASM_FLAGS = " -s WASM=1 ";
 var SINGLE_FILE_FLAG = " -s SINGLE_FILE=1 ";
 
 var EXPORTED_FUNCTIONS =
-  ' -s EXPORTED_FUNCTIONS=["_createNftDataSet,_compressZip,_free"] -s EXPORTED_RUNTIME_METHODS=["FS,stringToUTF8"] ';
+  ' -s EXPORTED_FUNCTIONS=["_createNftDataSet,_compressZip,_malloc,_free"] -s EXPORTED_RUNTIME_METHODS=["FS,stringToUTF8"] ';
 
 /* DEBUG FLAGS */
 var DEBUG_FLAGS = " -g ";
@@ -177,15 +177,7 @@ function clean_builds() {
 }
 
 var compile_arlib = format(
-  EMCC +
-    " " +
-    INCLUDES +
-    " " +
-    ar_sources.join(" ") +
-    FLAGS +
-    " " +
-    DEFINES +
-    " -r -o {OUTPUT_PATH}libar.o ",
+  EMCC + " " + INCLUDES + " " + ar_sources.join(" ") + FLAGS + " " + DEFINES + " -r -o {OUTPUT_PATH}libar.o ",
   OUTPUT_PATH,
 );
 
