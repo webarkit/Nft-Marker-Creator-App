@@ -1,0 +1,14 @@
+# Ignore artifacts:
+build
+coverage
+
+# Ignore all HTML files:
+*.html
+
+# Ignore specific files:
+demo/public
+src/*.jpg
+src/*.png
+src/output
+node_modules
+emscripten/WebARKitLib
