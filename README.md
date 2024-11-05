@@ -1,4 +1,5 @@
 # Nft-Marker-Creator-App
+
 This editor creates NFT markers for **WebARKitLib** and **ARTOOLKIT 5.x**, they are compatible with jsartoolkitNFT.js, jsartoolkit5.js, artoolkit5.js, ARnft.js and AR.js.
 A Node app is provided.
 
@@ -14,42 +15,41 @@ This project is based on the original **NFT Marker Creator** by [Carnaux](https:
 
 2. Install all dependencies. First run
 
-   ` nvm install ` 
+   `nvm install`
 
-   it will download the node version specified in the `.nvmrc` file. You need to install nvm first if you don't have it. Then run ` nvm use 18 ` to use the node version specified in the `.nvmrc` file. 
+   it will download the node version specified in the `.nvmrc` file. You need to install nvm first if you don't have it. Then run `nvm use 18` to use the node version specified in the `.nvmrc` file.
 
    Then finally run
 
-   ` npm install `
-
+   `npm install`
 
 3. Put the image you want inside the `src` folder. You can just paste it or you can create a folder. e.g
 
-     - NFTmarkerCreatorAppFolder
-         - NFTMarkerCreator.js
-         - IMAGE.PNG :arrow_left:
-         - ...
+   - NFTmarkerCreatorAppFolder
+     - NFTMarkerCreator.js
+     - IMAGE.PNG :arrow_left:
+     - ...
 
-     or
+   or
 
-     - NFTmarkerCreatorAppFolder
-          - NFTMarkerCreator.js
-          - FOLDER/IMAGE.PNG :arrow_left:
-          - ...
+   - NFTmarkerCreatorAppFolder
+     - NFTMarkerCreator.js
+     - FOLDER/IMAGE.PNG :arrow_left:
+     - ...
 
 4. Run it
 
-    ` node NFTMarkerCreator.js -i PATH/TO/IMAGE`
+   ` node NFTMarkerCreator.js -i PATH/TO/IMAGE`
 
-     In the end of the process an "output" folder will be created(if it does not exist) with the marker files.
+   In the end of the process an "output" folder will be created(if it does not exist) with the marker files.
 
 You can use additional flags with the run command.
 
-e.g ` node app.js -i image.png -level=4 -min_thresh=8 ` 
+e.g `node app.js -i image.png -level=4 -min_thresh=8`
 
     -zft
           Flag for creating only the zft file
-    -noConf 
+    -noConf
           Disable confirmation after the confidence level
     -Demo
           Creates the demo configuration
@@ -61,40 +61,42 @@ e.g ` node app.js -i image.png -level=4 -min_thresh=8 `
     -leveli=n
          (n is an integer in range 0 (few) to 3 (many). Default 1.'
     -feature_density=<feature_density>
-    -dpi=f: 
+    -dpi=f:
           Override embedded JPEG DPI value.
     -max_dpi=<max_dpi>
     -min_dpi=<min_dpi>
     -background
          Run in background, i.e. as daemon detached from controlling terminal. (macOS and Linux only.)
-    --help -h -?  
+    --help -h -?
           Display this help
-   
+
 5. The generated files will be on the "output" folder.
 
 6. (OPTIONAL) You can test your marker using the demo folder!
 
-     - Just run `npm run demo`.
+   - Just run `npm run demo`.
 
-     - It should open a server at: http://localhost:3000/ 
+   - It should open a server at: http://localhost:3000/
 
-     If you want to create the demo configuration when you create a marker, add `-Demo` to the command parameters.
+   If you want to create the demo configuration when you create a marker, add `-Demo` to the command parameters.
 
-     e.g node app.js -i image.png -Demo
+   e.g node app.js -i image.png -Demo
 
 ## Create your NTS markers with our docker image
+
 First, you need docker installed in your system, if you haven't, follow the Docker engine installation [instruction](https://docs.docker.com/engine/install/) .
 Then inside the folder you want to run docker:
 
 `docker run -dit --name nft-app -v "$(pwd):/src" nft-marker-creator-app:0.2.0 bash`
 
-With the docker container generate  the NFT marker:
+With the docker container generate the NFT marker:
 
 `docker exec nft-app node ../Nft-Marker-Creator-App/src/NFTMarkerCreator.js -I /src/pinball.jpg`
 
 remember to prepend the `-I /src/<path to your image>`
 
 ## Build
+
 Build emscripten files with docker:
 
     docker run --rm -v $(pwd):/src -u $(id -u):$(id -g) -e "EMSCRIPTEN=/emsdk/upstream/emscripten"  emscripten/emsdk:3.1.26 npm run build-local
@@ -105,4 +107,5 @@ or better create a docker container and run the build command inside it:
     docker exec emscripten-nft-marker-creator-app npm run build-local
 
 ## Planned Features
+
 - [ ] Multi threading support to speed up the creation of the markers.

@@ -27,10 +27,13 @@
   "scripts": {
     "test": "jest",
     "build-local": "node tools/makem.js; echo Built at `date`",
-    "demo": "cd demo && node demoServer.js"
+    "demo": "cd demo && node demoServer.js",
+    "format": "prettier --write \"**/*.{js,json,css,md}\"",
+    "check-format": "prettier --check \"**/*.{js,json,css,md}\""
   },
   "license": "LGPL-3.0",
   "devDependencies": {
-    "jest": "^29.7.0"
+    "jest": "^29.7.0",
+    "prettier": "^3.3.3"
   }
 }

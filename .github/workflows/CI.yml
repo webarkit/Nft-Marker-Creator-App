@@ -1,0 +1,28 @@
+name: Check Formatting and Run Tests
+
+on:
+  push:
+    branches:
+      - '**'
+
+jobs:
+  check-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Use Node.js version from .nvmrc
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Check formatting
+        run: npm run check-format
+
+      - name: Run tests
+        run: npm test
