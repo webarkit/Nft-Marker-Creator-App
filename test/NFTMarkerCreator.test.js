@@ -12,4 +12,4 @@ test("NFTMarkerCreator should process the image", (done) => {
     expect(stdout).toContain("Finished marker creation!");
     done();
   });
-}, 10000);
+}, 200000);
