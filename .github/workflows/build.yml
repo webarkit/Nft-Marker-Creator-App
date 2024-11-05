@@ -18,6 +18,9 @@ jobs:
         with:
           node-version-file: '.nvmrc'
 
+      - name: Clone git submodule (WebARKitLib)
+        run: git submodule update --init
+
       - name: Install dependencies
         run: npm install
 
