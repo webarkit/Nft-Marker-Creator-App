@@ -1,6 +1,6 @@
 {
   "name": "@webarkit/nft-marker-creator-app",
-  "version": "0.2.",
+  "version": "0.2.0",
   "main": "src/NFTMarkerCreator.js",
   "description": "NFt Marker Creator based on WebARKitLib, ported thanks to Emscripten",
   "keywords": [
@@ -25,8 +25,12 @@
     "sharp": "0.33.5"
   },
   "scripts": {
+    "test": "jest",
     "build-local": "node tools/makem.js; echo Built at `date`",
     "demo": "cd demo && node demoServer.js"
   },
-  "license": "LGPL-3.0"
+  "license": "LGPL-3.0",
+  "devDependencies": {
+    "jest": "^29.7.0"
+  }
 }
