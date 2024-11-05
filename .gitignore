@@ -1,4 +1,5 @@
 src/output
 node_modules
 build/*.bc
+build/*.o
 demo/public/marker

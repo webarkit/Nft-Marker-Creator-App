@@ -83,7 +83,7 @@ var kpm_sources = [
   "KPM/FreakMatcher/detectors/DoG_scale_invariant_detector.cpp",
   "KPM/FreakMatcher/detectors/gaussian_scale_space_pyramid.cpp",
   "KPM/FreakMatcher/detectors/gradients.cpp",
-  "KPM/FreakMatcher/detectors/harris.cpp",
+  //"KPM/FreakMatcher/detectors/harris.cpp",
   "KPM/FreakMatcher/detectors/orientation_assignment.cpp",
   "KPM/FreakMatcher/detectors/pyramid.cpp",
   "KPM/FreakMatcher/facade/visual_database_facade.cpp",
@@ -116,8 +116,6 @@ FLAGS += " -s TOTAL_MEMORY=" + MEM + " ";
 FLAGS += " -s ALLOW_MEMORY_GROWTH=1 ";
 FLAGS += " -s USE_ZLIB=1";
 FLAGS += " -s USE_LIBJPEG=1";
-//FLAGS += ' -s ASSERTIONS=1';
-FLAGS += " --memory-init-file 0 "; // for memless file
 FLAGS += " -s FORCE_FILESYSTEM=1";
 
 //ONLY ENABLE FOR THE NFT-MARKER-CREATOR WEB VERSION !IMPORTANT FLAGS
@@ -187,7 +185,7 @@ var compile_arlib = format(
     FLAGS +
     " " +
     DEFINES +
-    " -r -o {OUTPUT_PATH}libar.bc ",
+    " -r -o {OUTPUT_PATH}libar.o ",
   OUTPUT_PATH,
 );
 
@@ -196,7 +194,7 @@ var compile_combine_min = format(
     " " +
     INCLUDES +
     " " +
-    " {OUTPUT_PATH}libar.bc " +
+    " {OUTPUT_PATH}libar.o " +
     MAIN_SOURCES +
     EXPORTED_FUNCTIONS +
     FLAGS +
@@ -214,7 +212,7 @@ var compile_wasm = format(
     " " +
     INCLUDES +
     " " +
-    " {OUTPUT_PATH}libar.bc " +
+    " {OUTPUT_PATH}libar.o " +
     MAIN_SOURCES +
     EXPORTED_FUNCTIONS +
     FLAGS +
@@ -233,7 +231,7 @@ var compile_wasm_td = format(
     " " +
     INCLUDES +
     " " +
-    " {OUTPUT_PATH}libar.bc " +
+    " {OUTPUT_PATH}libar.o " +
     MAIN_SOURCES +
     EXPORTED_FUNCTIONS +
     FLAGS +
