@@ -25,21 +25,21 @@ This project is based on the original **NFT Marker Creator** by [Carnaux](https:
 
 3. Put the image you want inside the `src` folder. You can just paste it or you can create a folder. e.g
 
-    - NFTmarkerCreatorApp Folder
-     - NFTMarkerCreator.js
-     - IMAGE.PNG :arrow_left:
-     - ...
+   - NFTmarkerCreatorApp Folder
+   - NFTMarkerCreator.js
+   - IMAGE.PNG :arrow_left:
+   - ...
 
    or
 
-    - NFTmarkerCreatorApp Folder
-     - NFTMarkerCreator.js
-     - FOLDER/IMAGE.PNG :arrow_left:
-     - ...
+   - NFTmarkerCreatorApp Folder
+   - NFTMarkerCreator.js
+   - FOLDER/IMAGE.PNG :arrow_left:
+   - ...
 
 4. Run it
 
-``` 
+```
 cd src
 node NFTMarkerCreator.js -i PATH/TO/IMAGE
 ```
