@@ -1,3 +1,11 @@
+![github releases](https://flat.badgen.net/github/release/webarkit/Nft-Marker-Creator-App)
+![github stars](https://flat.badgen.net/github/stars/webarkit/Nft-Marker-Creator-App)
+![github forks](https://flat.badgen.net/github/forks/webarkit/Nft-Marker-Creator-App)
+![npm package version](https://flat.badgen.net/npm/v/@webarkit/nft-marker-creator-app)
+![docker pulls](https://flat.badgen.net/docker/pulls/webarkit/nft-marker-creator-app)
+[![CI](https://github.com/webarkit/Nft-Marker-Creator-App/actions/workflows/CI.yml/badge.svg)](https://github.com/webarkit/Nft-Marker-Creator-App/actions/workflows/CI.yml)
+[![Build Nft-Marker-Creator-App](https://github.com/webarkit/Nft-Marker-Creator-App/actions/workflows/build.yml/badge.svg)](https://github.com/webarkit/Nft-Marker-Creator-App/actions/workflows/main.yml)
+
 # Nft-Marker-Creator-App
 
 This editor creates NFT markers for **WebARKitLib** and **ARTOOLKIT 5.x**, they are compatible with jsartoolkitNFT.js, jsartoolkit5.js, artoolkit5.js, ARnft.js and AR.js.
@@ -90,7 +98,7 @@ e.g `node NFTMarkerCreator.js -i image.png -level=4 -min_thresh=8`
 First, you need docker installed in your system, if you haven't, follow the Docker engine installation [instruction](https://docs.docker.com/engine/install/) .
 Then inside the folder you want to run the docker image:
 
-`docker run -dit --name nft-app -v "$(pwd):/src" webarkit/nft-marker-creator-app:0.2.0 bash`
+`docker run -dit --name nft-app -v "$(pwd):/src" webarkit/nft-marker-creator-app:0.2.1 bash`
 
 With the docker container generate the NFT marker:
 
