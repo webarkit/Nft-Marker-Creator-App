@@ -37,5 +37,9 @@ jobs:
       - name: Check formatting
         run: npm run check-format
 
+      - name: List files in the repository
+        run: |
+          ls ${{ github.workspace }}
+
       - name: Run tests
         run: npm run test
