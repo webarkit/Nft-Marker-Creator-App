@@ -67,11 +67,3 @@ jobs:
             build/NftMarkerCreator_wasm.js
             build/NftMarkerCreator_wasm.thread.js
             src/NFTMarkerCreator.js
-
-      - name: Publish to Docker Registry
-        uses: elgohr/Publish-Docker-Github-Action@v5
-        with:
-          name: webarkit/nft-marker-creator-app
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
-          tags: "latest,${{ steps.pre-step.outputs.release-version }}"
