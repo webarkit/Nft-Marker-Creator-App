@@ -25,27 +25,30 @@ This project is based on the original **NFT Marker Creator** by [Carnaux](https:
 
 3. Put the image you want inside the `src` folder. You can just paste it or you can create a folder. e.g
 
-   - NFTmarkerCreatorAppFolder
+    - NFTmarkerCreatorApp Folder
      - NFTMarkerCreator.js
      - IMAGE.PNG :arrow_left:
      - ...
 
    or
 
-   - NFTmarkerCreatorAppFolder
+    - NFTmarkerCreatorApp Folder
      - NFTMarkerCreator.js
      - FOLDER/IMAGE.PNG :arrow_left:
      - ...
 
 4. Run it
 
-   ` node NFTMarkerCreator.js -i PATH/TO/IMAGE`
+``` 
+cd src
+node NFTMarkerCreator.js -i PATH/TO/IMAGE
+```
 
-   In the end of the process an "output" folder will be created(if it does not exist) with the marker files.
+In the end of the process an "output" folder will be created (if it does not exist) with the marker files.
 
 You can use additional flags with the run command.
 
-e.g `node app.js -i image.png -level=4 -min_thresh=8`
+e.g `node NFTMarkerCreator.js -i image.png -level=4 -min_thresh=8`
 
     -zft
           Flag for creating only the zft file
@@ -80,14 +83,14 @@ e.g `node app.js -i image.png -level=4 -min_thresh=8`
 
    If you want to create the demo configuration when you create a marker, add `-Demo` to the command parameters.
 
-   e.g node app.js -i image.png -Demo
+   e.g node NFTMarkerCreator.js -i image.png -Demo
 
 ## Create your NTS markers with our docker image
 
 First, you need docker installed in your system, if you haven't, follow the Docker engine installation [instruction](https://docs.docker.com/engine/install/) .
-Then inside the folder you want to run docker:
+Then inside the folder you want to run the docker image:
 
-`docker run -dit --name nft-app -v "$(pwd):/src" nft-marker-creator-app:0.2.0 bash`
+`docker run -dit --name nft-app -v "$(pwd):/src" webarkit/nft-marker-creator-app:0.2.0 bash`
 
 With the docker container generate the NFT marker:
 
@@ -99,12 +102,14 @@ remember to prepend the `-I /src/<path to your image>`
 
 Build emscripten files with docker:
 
-    docker run --rm -v $(pwd):/src -u $(id -u):$(id -g) -e "EMSCRIPTEN=/emsdk/upstream/emscripten"  emscripten/emsdk:3.1.26 npm run build-local
+    docker run --rm -v $(pwd):/src -u $(id -u):$(id -g) -e "EMSCRIPTEN=/emsdk/upstream/emscripten"  emscripten/emsdk:3.1.69 npm run build-local
 
 or better create a docker container and run the build command inside it:
 
-    docker run -dit --name emscripten-nft-marker-creator-app -v $(pwd):/src emscripten/emsdk:3.1.26 bash
+    docker run -dit --name emscripten-nft-marker-creator-app -v $(pwd):/src emscripten/emsdk:3.1.69 bash
     docker exec emscripten-nft-marker-creator-app npm run build-local
+
+In VSCode you can run the `setup-docker` and `build-docker` command inside package.json.
 
 ## Planned Features
 
