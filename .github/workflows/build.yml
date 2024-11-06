@@ -12,7 +12,7 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-        id: pre-step
+      - id: pre-step
         shell: bash
         run: echo "release-version=$(echo ${GITHUB_REF:10})" >> $GITHUB_OUTPUT
 
