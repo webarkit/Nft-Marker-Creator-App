@@ -44,8 +44,9 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: build
-          path: build
-          !build/libar.o
+          path: |
+            build
+            !build/libar.o
       - name: Release
         uses: softprops/action-gh-release@v2
         if: startsWith(github.ref, 'refs/tags/')
