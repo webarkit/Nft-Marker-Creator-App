@@ -93,6 +93,20 @@ e.g `node NFTMarkerCreator.js -i image.png -level=4 -min_thresh=8`
 
    e.g node NFTMarkerCreator.js -i image.png -Demo
 
+## ES6 version of the build library
+
+The library is built with Emscripten and is located in the `build` folder. It is an ES6 module and can be imported in your project.
+
+<!-- prettier-ignore -->
+```js
+<script type="module">
+
+  import nftMC from '../build/NFTMarkerCreator_ES6_wasm.js';
+  const mc = await nftMC();
+
+</script>
+```
+
 ## Create your NTS markers with our docker image
 
 First, you need docker installed in your system, if you haven't, follow the Docker engine installation [instruction](https://docs.docker.com/engine/install/) .
