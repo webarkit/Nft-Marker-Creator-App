@@ -35,8 +35,8 @@ const BUILD_MIN_FILE = "NftMarkerCreator.min.js";
 
 // prettier-ignore
 let MAIN_SOURCES = [
-  'markerCreator.cpp',
-  'markerCompress.cpp'
+    'markerCreator.cpp',
+    'markerCompress.cpp'
 ];
 
 MAIN_SOURCES = MAIN_SOURCES.map(function (src) {
@@ -47,10 +47,10 @@ let srcTest = path.resolve(__dirname, WEBARKITLIB_ROOT + "/lib/SRC/");
 
 // prettier-ignore
 let ar_sources = [
-  'ARUtil/log.c',
-  'ARUtil/file_utils.c',
+    'ARUtil/log.c',
+    'ARUtil/file_utils.c',
 ].map(function (src) {
-  return path.resolve(__dirname, WEBARKITLIB_ROOT + '/lib/SRC/', src);
+    return path.resolve(__dirname, WEBARKITLIB_ROOT + '/lib/SRC/', src);
 });
 
 const ar2_sources = [
@@ -100,9 +100,9 @@ const kpm_sources = [
 
 // prettier-ignore
 if (HAVE_NFT) {
-	ar_sources = ar_sources
-	.concat(ar2_sources)
-	.concat(kpm_sources);
+    ar_sources = ar_sources
+        .concat(ar2_sources)
+        .concat(kpm_sources);
 }
 
 let DEFINES = " ";
@@ -121,7 +121,7 @@ FLAGS += " -s FORCE_FILESYSTEM=1";
 
 let ES6_FLAGS = "";
 ES6_FLAGS +=
-    " -s EXPORT_ES6=1 -s USE_ES6_IMPORT_META=0 -s MODULARIZE=1 -sENVIRONMENT=web -s EXPORT_NAME='NftMC' ";
+  " -s EXPORT_ES6=1 -s USE_ES6_IMPORT_META=0 -s MODULARIZE=1 -sENVIRONMENT=web -s EXPORT_NAME='NftMC' ";
 
 const WASM_FLAGS = " -s WASM=1 ";
 
@@ -219,7 +219,7 @@ const compile_wasm = format(
 );
 
 const compile_wasm_es6 = format(
-    EMCC +
+  EMCC +
     " " +
     INCLUDES +
     " " +
@@ -233,9 +233,9 @@ const compile_wasm_es6 = format(
     DEFINES +
     " -std=c++11 " +
     " -o {OUTPUT_PATH}{BUILD_FILE} ",
-    OUTPUT_PATH,
-    OUTPUT_PATH,
-    BUILD_WASM_ES6_FILE,
+  OUTPUT_PATH,
+  OUTPUT_PATH,
+  BUILD_WASM_ES6_FILE,
 );
 
 const compile_wasm_td = format(
