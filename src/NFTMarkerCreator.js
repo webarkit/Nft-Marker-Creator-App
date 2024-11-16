@@ -173,26 +173,18 @@ Module.onRuntimeInitialized = async function () {
 
   let paramStr = params.join(" ");
 
-  let StrBuffer = Module._malloc(paramStr.length + 1);
-  Module.stringToUTF8(paramStr, StrBuffer);
-
   console.log("Write Success");
-  let heapSpace = Module._malloc(imageData.array.length * imageData.array.BYTES_PER_ELEMENT);
-  Module.HEAPU8.set(imageData.array, heapSpace);
 
-  console.log("Setting Heap Success.. Continue to Create ImageSet..");
-  Module._createNftDataSet(
-    heapSpace,
+  console.log("Continue to Create NftDataSet..");
+  Module.createNftDataSet(
+      imageData.array,
     imageData.dpi,
     imageData.sizeX,
     imageData.sizeY,
     imageData.nc,
-    StrBuffer,
+      paramStr
   );
   console.log("Create NFT Dataset complete...");
-
-  Module._free(heapSpace);
-  Module._free(StrBuffer);
 
   let filenameIset = "tempFilename.iset";
   let filenameFset = "tempFilename.fset";

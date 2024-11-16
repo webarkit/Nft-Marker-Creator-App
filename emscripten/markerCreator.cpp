@@ -423,11 +423,16 @@ extern "C"
                     EXIT(E_DATA_PROCESSING_ERROR);
                 }
                 ARLOGi("  Done.\n");
-
+                #ifdef HAVE_THREADING
+                    m.lock();
+                #endif
                 featureSet->list[i].coord = ar2SelectFeature2(imageSet->scale[i], featureMap,
                                                               AR2_DEFAULT_TS1 * AR2_TEMP_SCALE, AR2_DEFAULT_TS2 * AR2_TEMP_SCALE, AR2_DEFAULT_GEN_FEATURE_MAP_SEARCH_SIZE2,
                                                               occ_size,
                                                               max_thresh, min_thresh, sd_thresh, &num);
+                #ifdef HAVE_THREADING
+                    m.unlock();
+                #endif
                 if (featureSet->list[i].coord == NULL)
                     num = 0;
                 featureSet->list[i].num = num;
@@ -661,3 +666,5 @@ extern "C"
     }
 
 } // extern "C"
+
+#include "markerCreator_bindings.cpp"

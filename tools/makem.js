@@ -127,8 +127,10 @@ const WASM_FLAGS = " -s WASM=1 ";
 
 const SINGLE_FILE_FLAG = " -s SINGLE_FILE=1 ";
 
+const BIND_FLAG = " --bind ";
+
 const EXPORTED_FUNCTIONS =
-  ' -s EXPORTED_FUNCTIONS=["_createNftDataSet,_compressZip,_malloc,_free"] -s EXPORTED_RUNTIME_METHODS=["FS,stringToUTF8"] ';
+    ' -s EXPORTED_FUNCTIONS=["_compressZip,_malloc,_free"] -s EXPORTED_RUNTIME_METHODS=["FS,stringToUTF8"] ';
 
 /* DEBUG FLAGS */
 let DEBUG_FLAGS = " -g ";
@@ -177,7 +179,7 @@ function clean_builds() {
 }
 
 const compile_arlib = format(
-  EMCC + " " + INCLUDES + " " + ar_sources.join(" ") + FLAGS + " " + DEFINES + " -r -o {OUTPUT_PATH}libar.o ",
+    EMCC + " " + INCLUDES + " " + ar_sources.join(" ") + FLAGS + " " + DEFINES + BIND_FLAG + " -r -o {OUTPUT_PATH}libar.o ",
   OUTPUT_PATH,
 );
 
@@ -193,6 +195,7 @@ const compile_combine_min = format(
     " -s WASM=0" +
     " " +
     DEFINES +
+    BIND_FLAG +
     " -o {OUTPUT_PATH}{BUILD_FILE} ",
   OUTPUT_PATH,
   OUTPUT_PATH,
@@ -211,6 +214,7 @@ const compile_wasm = format(
     WASM_FLAGS +
     SINGLE_FILE_FLAG +
     DEFINES +
+    BIND_FLAG +
     " -std=c++11 " +
     " -o {OUTPUT_PATH}{BUILD_FILE} ",
   OUTPUT_PATH,
@@ -231,6 +235,7 @@ const compile_wasm_es6 = format(
     ES6_FLAGS +
     SINGLE_FILE_FLAG +
     DEFINES +
+    BIND_FLAG +
     " -std=c++11 " +
     " -o {OUTPUT_PATH}{BUILD_FILE} ",
   OUTPUT_PATH,
@@ -252,6 +257,7 @@ const compile_wasm_td = format(
     DEFINES +
     TD +
     " -std=c++11 -pthread " +
+    BIND_FLAG +
     " -o {OUTPUT_PATH}{BUILD_FILE} ",
   OUTPUT_PATH,
   OUTPUT_PATH,
