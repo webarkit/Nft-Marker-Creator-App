@@ -2,6 +2,9 @@ name: Publish to DockerHub with a verstion-tag and latest-tag
 on:
   release:
     types: [ published ]
+  push:
+    branches:
+      - main
 jobs:
   update:
     runs-on: ubuntu-latest
