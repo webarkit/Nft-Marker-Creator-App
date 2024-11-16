@@ -30,6 +30,7 @@ var OUTPUT_PATH = path.resolve(__dirname, "../build/") + "/";
 
 var BUILD_WASM_FILE = "NftMarkerCreator_wasm.js";
 var BUILD_WASM_TD_FILE = "NftMarkerCreator_wasm.thread.js";
+var BUILD_WASM_ES6_FILE = "NftMarkerCreator_ES6_wasm.js";
 var BUILD_MIN_FILE = "NftMarkerCreator.min.js";
 
 // prettier-ignore
@@ -118,10 +119,9 @@ FLAGS += " -s USE_ZLIB=1";
 FLAGS += " -s USE_LIBJPEG=1";
 FLAGS += " -s FORCE_FILESYSTEM=1";
 
-//ONLY ENABLE FOR THE NFT-MARKER-CREATOR WEB VERSION !IMPORTANT FLAGS
-// FLAGS += ' -s MODULARIZE';
-// FLAGS += ' -s EXPORT_ES6=1';
-// FLAGS += ' -s USE_ES6_IMPORT_META=0';
+let ES6_FLAGS = "";
+ES6_FLAGS +=
+    " -s EXPORT_ES6=1 -s USE_ES6_IMPORT_META=0 -s MODULARIZE=1 -sENVIRONMENT=web -s EXPORT_NAME='NftMC' ";
 
 var WASM_FLAGS = " -s WASM=1 ";
 
@@ -218,6 +218,26 @@ var compile_wasm = format(
   BUILD_WASM_FILE,
 );
 
+var compile_wasm_es6 = format(
+    EMCC +
+    " " +
+    INCLUDES +
+    " " +
+    " {OUTPUT_PATH}libar.o " +
+    MAIN_SOURCES +
+    EXPORTED_FUNCTIONS +
+    FLAGS +
+    WASM_FLAGS +
+    ES6_FLAGS +
+    SINGLE_FILE_FLAG +
+    DEFINES +
+    " -std=c++11 " +
+    " -o {OUTPUT_PATH}{BUILD_FILE} ",
+    OUTPUT_PATH,
+    OUTPUT_PATH,
+    BUILD_WASM_ES6_FILE,
+);
+
 var compile_wasm_td = format(
   EMCC +
     " " +
@@ -279,6 +299,7 @@ function addJob(job) {
 addJob(clean_builds);
 addJob(compile_arlib);
 addJob(compile_wasm);
+addJob(compile_wasm_es6);
 addJob(compile_wasm_td);
 addJob(compile_combine_min);
 
