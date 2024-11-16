@@ -73,6 +73,7 @@ jobs:
         with:
           files: |
             build/NftMarkerCreator.min.js
+            build/NftMarkerCreator_ES6_wasm.js
             build/NftMarkerCreator_wasm.js
             build/NftMarkerCreator_wasm.thread.js
             src/NFTMarkerCreator.js
