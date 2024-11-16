@@ -3,15 +3,15 @@
  * @author zz85 github.com/zz85
  */
 
-var exec = require("child_process").exec,
+let exec = require("child_process").exec,
   path = require("path"),
   fs = require("fs"),
   child;
 
-var HAVE_NFT = 1;
+const HAVE_NFT = 1;
 
-var EMSCRIPTEN_ROOT = process.env.EMSCRIPTEN;
-var WEBARKITLIB_ROOT = process.env.WEBARKITLIB_ROOT || "../emscripten/WebARKitLib";
+const EMSCRIPTEN_ROOT = process.env.EMSCRIPTEN;
+const WEBARKITLIB_ROOT = process.env.WEBARKITLIB_ROOT || "../emscripten/WebARKitLib";
 
 if (!EMSCRIPTEN_ROOT) {
   console.log("\nWarning: EMSCRIPTEN environment variable not found.");
@@ -20,23 +20,23 @@ if (!EMSCRIPTEN_ROOT) {
   );
 }
 
-var EMCC = EMSCRIPTEN_ROOT ? path.resolve(EMSCRIPTEN_ROOT, "emcc") : "emcc";
-var EMPP = EMSCRIPTEN_ROOT ? path.resolve(EMSCRIPTEN_ROOT, "em++") : "em++";
-var OPTIMIZE_FLAGS = " -Oz "; // -Oz for smallest size
-var MEM = 256 * 1024 * 1024; // 64MB
+const EMCC = EMSCRIPTEN_ROOT ? path.resolve(EMSCRIPTEN_ROOT, "emcc") : "emcc";
+const EMPP = EMSCRIPTEN_ROOT ? path.resolve(EMSCRIPTEN_ROOT, "em++") : "em++";
+const OPTIMIZE_FLAGS = " -Oz "; // -Oz for smallest size
+const MEM = 256 * 1024 * 1024; // 64MB
 
-var SOURCE_PATH = path.resolve(__dirname, "../emscripten/") + "/";
-var OUTPUT_PATH = path.resolve(__dirname, "../build/") + "/";
+const SOURCE_PATH = path.resolve(__dirname, "../emscripten/") + "/";
+const OUTPUT_PATH = path.resolve(__dirname, "../build/") + "/";
 
-var BUILD_WASM_FILE = "NftMarkerCreator_wasm.js";
-var BUILD_WASM_TD_FILE = "NftMarkerCreator_wasm.thread.js";
-var BUILD_WASM_ES6_FILE = "NftMarkerCreator_ES6_wasm.js";
-var BUILD_MIN_FILE = "NftMarkerCreator.min.js";
+const BUILD_WASM_FILE = "NftMarkerCreator_wasm.js";
+const BUILD_WASM_TD_FILE = "NftMarkerCreator_wasm.thread.js";
+const BUILD_WASM_ES6_FILE = "NftMarkerCreator_ES6_wasm.js";
+const BUILD_MIN_FILE = "NftMarkerCreator.min.js";
 
 // prettier-ignore
-var MAIN_SOURCES = [
-	'markerCreator.cpp',
-	'markerCompress.cpp'
+let MAIN_SOURCES = [
+  'markerCreator.cpp',
+  'markerCompress.cpp'
 ];
 
 MAIN_SOURCES = MAIN_SOURCES.map(function (src) {
@@ -46,14 +46,14 @@ MAIN_SOURCES = MAIN_SOURCES.map(function (src) {
 let srcTest = path.resolve(__dirname, WEBARKITLIB_ROOT + "/lib/SRC/");
 
 // prettier-ignore
-var ar_sources = [
-    'ARUtil/log.c',
-    'ARUtil/file_utils.c',
-].map(function(src) {
-	return path.resolve(__dirname, WEBARKITLIB_ROOT + '/lib/SRC/', src);
+let ar_sources = [
+  'ARUtil/log.c',
+  'ARUtil/file_utils.c',
+].map(function (src) {
+  return path.resolve(__dirname, WEBARKITLIB_ROOT + '/lib/SRC/', src);
 });
 
-var ar2_sources = [
+const ar2_sources = [
   "handle.c",
   "imageSet.c",
   "jpeg.c",
@@ -74,7 +74,7 @@ var ar2_sources = [
   return path.resolve(__dirname, WEBARKITLIB_ROOT + "/lib/SRC/AR2/", src);
 });
 
-var kpm_sources = [
+const kpm_sources = [
   "KPM/kpmHandle.cpp",
   "KPM/kpmRefDataSet.cpp",
   "KPM/kpmMatching.cpp",
@@ -105,12 +105,12 @@ if (HAVE_NFT) {
 	.concat(kpm_sources);
 }
 
-var DEFINES = " ";
+let DEFINES = " ";
 if (HAVE_NFT) DEFINES += " -D HAVE_NFT ";
 
-var TD = " -D HAVE_THREADING ";
+const TD = " -D HAVE_THREADING ";
 
-var FLAGS = "" + OPTIMIZE_FLAGS;
+let FLAGS = "" + OPTIMIZE_FLAGS;
 // var FLAGS = '';
 FLAGS += " -Wno-warn-absolute-paths ";
 FLAGS += " -s TOTAL_MEMORY=" + MEM + " ";
@@ -123,15 +123,15 @@ let ES6_FLAGS = "";
 ES6_FLAGS +=
     " -s EXPORT_ES6=1 -s USE_ES6_IMPORT_META=0 -s MODULARIZE=1 -sENVIRONMENT=web -s EXPORT_NAME='NftMC' ";
 
-var WASM_FLAGS = " -s WASM=1 ";
+const WASM_FLAGS = " -s WASM=1 ";
 
-var SINGLE_FILE_FLAG = " -s SINGLE_FILE=1 ";
+const SINGLE_FILE_FLAG = " -s SINGLE_FILE=1 ";
 
-var EXPORTED_FUNCTIONS =
+const EXPORTED_FUNCTIONS =
   ' -s EXPORTED_FUNCTIONS=["_createNftDataSet,_compressZip,_malloc,_free"] -s EXPORTED_RUNTIME_METHODS=["FS,stringToUTF8"] ';
 
 /* DEBUG FLAGS */
-var DEBUG_FLAGS = " -g ";
+let DEBUG_FLAGS = " -g ";
 // DEBUG_FLAGS += ' -s ASSERTIONS=2 '
 DEBUG_FLAGS += " -s ASSERTIONS=1 ";
 DEBUG_FLAGS += " --profiling ";
@@ -151,7 +151,7 @@ var INCLUDES = [
   .join(" ");
 
 function format(str) {
-  for (var f = 1; f < arguments.length; f++) {
+  for (let f = 1; f < arguments.length; f++) {
     str = str.replace(/{\w*}/, arguments[f]);
   }
   return str;
@@ -159,16 +159,16 @@ function format(str) {
 
 function clean_builds() {
   try {
-    var stats = fs.statSync(OUTPUT_PATH);
+    const stats = fs.statSync(OUTPUT_PATH);
   } catch (e) {
     fs.mkdirSync(OUTPUT_PATH);
   }
 
   try {
-    var files = fs.readdirSync(OUTPUT_PATH);
+    const files = fs.readdirSync(OUTPUT_PATH);
     if (files.length > 0)
-      for (var i = 0; i < files.length; i++) {
-        var filePath = OUTPUT_PATH + "/" + files[i];
+      for (let i = 0; i < files.length; i++) {
+        const filePath = OUTPUT_PATH + "/" + files[i];
         if (fs.statSync(filePath).isFile()) fs.unlinkSync(filePath);
       }
   } catch (e) {
@@ -176,12 +176,12 @@ function clean_builds() {
   }
 }
 
-var compile_arlib = format(
+const compile_arlib = format(
   EMCC + " " + INCLUDES + " " + ar_sources.join(" ") + FLAGS + " " + DEFINES + " -r -o {OUTPUT_PATH}libar.o ",
   OUTPUT_PATH,
 );
 
-var compile_combine_min = format(
+const compile_combine_min = format(
   EMCC +
     " " +
     INCLUDES +
@@ -199,7 +199,7 @@ var compile_combine_min = format(
   BUILD_MIN_FILE,
 );
 
-var compile_wasm = format(
+const compile_wasm = format(
   EMCC +
     " " +
     INCLUDES +
@@ -218,7 +218,7 @@ var compile_wasm = format(
   BUILD_WASM_FILE,
 );
 
-var compile_wasm_es6 = format(
+const compile_wasm_es6 = format(
     EMCC +
     " " +
     INCLUDES +
@@ -238,7 +238,7 @@ var compile_wasm_es6 = format(
     BUILD_WASM_ES6_FILE,
 );
 
-var compile_wasm_td = format(
+const compile_wasm_td = format(
   EMCC +
     " " +
     INCLUDES +
@@ -273,12 +273,15 @@ function onExec(error, stdout, stderr) {
   }
 }
 
+const jobs = [];
+
 function runJob() {
   if (!jobs.length) {
     console.log("Jobs completed");
     return;
   }
-  var cmd = jobs.shift();
+
+  const cmd = jobs.shift();
 
   if (typeof cmd === "function") {
     cmd();
@@ -289,8 +292,6 @@ function runJob() {
   console.log("\nRunning command: " + cmd + "\n");
   exec(cmd, onExec);
 }
-
-var jobs = [];
 
 function addJob(job) {
   jobs.push(job);
