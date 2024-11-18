@@ -112,7 +112,7 @@ The library is built with Emscripten and is located in the `build` folder. It is
 First, you need docker installed in your system, if you haven't, follow the Docker engine installation [instruction](https://docs.docker.com/engine/install/) .
 Then inside the folder you want to run the docker image:
 
-`docker run -dit --name nft-app -v "$(pwd):/src" webarkit/nft-marker-creator-app:0.2.3 bash`
+`docker run -dit --name nft-app -v "$(pwd):/src" webarkit/nft-marker-creator-app:0.2.4 bash`
 
 With the docker container generate the NFT marker:
 
