@@ -9,11 +9,18 @@ jobs:
   update:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - name: Publish to Registry
-        uses: elgohr/Publish-Docker-Github-Action@v5
+      - uses: actions/checkout@master
+      - name: Publish to Registry with version-tag
+        uses: elgohr/Publish-Docker-Github-Action@master
         with:
           name: webarkit/nft-marker-creator-app
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
-          tag_semver: true
+          tag_names: true
+      - name: Publish to Registry with latest-tag
+        uses: elgohr/Publish-Docker-Github-Action@master
+        with:
+          name: webarkit/nft-marker-creator-app
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+          tags: "latest"
