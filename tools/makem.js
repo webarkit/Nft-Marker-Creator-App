@@ -114,6 +114,8 @@ FLAGS += " -s ALLOW_MEMORY_GROWTH=1 ";
 FLAGS += " -s USE_LIBJPEG=1";
 FLAGS += " -s FORCE_FILESYSTEM=1";
 
+let ZLIB_FLAG = " -s USE_ZLIB=1 ";
+
 let ES6_FLAGS = "";
 ES6_FLAGS +=
   " -s EXPORT_ES6=1 -s USE_ES6_IMPORT_META=0 -s MODULARIZE=1 -sENVIRONMENT=web -s EXPORT_NAME='NftMC' ";
@@ -174,7 +176,7 @@ function clean_builds() {
 }
 
 const compile_arlib = format(
-  EMCC + " " + INCLUDES + " " + ar_sources.join(" ") + FLAGS + " " + DEFINES + " -r -o {OUTPUT_PATH}libar.o ",
+  EMCC + " " + INCLUDES + " " + ar_sources.join(" ") + FLAGS + " " + ZLIB_FLAG + " " + DEFINES + " -r -o {OUTPUT_PATH}libar.o ",
   OUTPUT_PATH,
 );
 
