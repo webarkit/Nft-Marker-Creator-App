@@ -178,11 +178,11 @@ const compile_arlib = format(
   OUTPUT_PATH,
 );
 
-const configure_zlib = format("emcmake cmake -B emscripten/zlib/build -S emscripten/zlib ..");
+const configure_zlib = format("emcmake cmake -B emscripten/build -S emscripten/zlib ..");
 
-const build_zlib = format("cd emscripten/zlib/build && emmake make");
+const build_zlib = format("cd emscripten/build && emmake make");
 
-const copy_zlib = format("cp emscripten/zlib/build/libz.a {OUTPUT_PATH}libz.a", OUTPUT_PATH);
+const copy_zlib = format("cp emscripten/build/libz.a {OUTPUT_PATH}libz.a", OUTPUT_PATH);
 
 const compile_combine_min = format(
   EMCC +

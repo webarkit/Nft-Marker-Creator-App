@@ -4,3 +4,4 @@ build/*.bc
 build/*.o
 build/*.a
 demo/public/marker
+emscripten/build
