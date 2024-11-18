@@ -10,17 +10,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Publish to Registry with version-tag
+      - id: pre-step
+        shell: bash
+        run: echo "release-version=$(echo ${GITHUB_REF:10})" >> $GITHUB_OUTPUT
+      - name: Publish to Registry with latest-tag and version-tag
         uses: elgohr/Publish-Docker-Github-Action@v5
         with:
           name: webarkit/nft-marker-creator-app
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
-          tag_names: true
-      - name: Publish to Registry with latest-tag
-        uses: elgohr/Publish-Docker-Github-Action@v5
-        with:
-          name: webarkit/nft-marker-creator-app
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
-          tags: "latest"
+          tags: "latest,${{ steps.pre-step.outputs.release-version }}"
