@@ -182,7 +182,7 @@ Module.onRuntimeInitialized = async function () {
     imageData.sizeX,
     imageData.sizeY,
     imageData.nc,
-      paramStr
+      paramStr,
   );
   console.log("Create NFT Dataset complete...");
 
