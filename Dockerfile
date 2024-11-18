@@ -12,6 +12,7 @@ RUN apt-get update \
         git \
         curl \
         ca-certificates \
+        dos2unix \
     && mkdir /app/ \
     && mkdir /config/ \
     && mkdir /scripts/ \
@@ -35,6 +36,8 @@ RUN npm install --prefix /Nft-Marker-Creator-App
 ENV PATH  /Nft-Marker-Creator-App/src:$PATH
 
 COPY docker/scripts /scripts/
+
+RUN dos2unix /scripts/docker/entrypoint.sh
 
 #RUN chmod +x /scripts/docker/entrypoint.sh
 ENTRYPOINT ["/scripts/docker/entrypoint.sh"]

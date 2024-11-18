@@ -1,6 +1,9 @@
+/build/*.a
+/build/*.o
 /demo
 /emscripten
 /src/*.jpg
 /src/*.png
 /tools
 /.idea
+/.github
