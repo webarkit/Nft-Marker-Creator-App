@@ -42,8 +42,6 @@ MAIN_SOURCES = MAIN_SOURCES.map(function (src) {
   return path.resolve(SOURCE_PATH, src);
 }).join(" ");
 
-//let srcTest = path.resolve(__dirname, WEBARKITLIB_ROOT + "/lib/SRC/");
-
 // prettier-ignore
 let ar_sources = [
     'ARUtil/log.c',
@@ -113,7 +111,6 @@ let FLAGS = "" + OPTIMIZE_FLAGS;
 FLAGS += " -Wno-warn-absolute-paths ";
 FLAGS += " -s TOTAL_MEMORY=" + MEM + " ";
 FLAGS += " -s ALLOW_MEMORY_GROWTH=1 ";
-FLAGS += " -s USE_ZLIB=1";
 FLAGS += " -s USE_LIBJPEG=1";
 FLAGS += " -s FORCE_FILESYSTEM=1";
 
@@ -181,12 +178,21 @@ const compile_arlib = format(
   OUTPUT_PATH,
 );
 
+const configure_zlib = format(
+  "emcmake cmake -B emscripten/zlib/build -S emscripten/zlib .."
+);
+
+const build_zlib = format("cd emscripten/zlib/build && emmake make");
+
+const copy_zlib = format("cp emscripten/zlib/build/libz.a {OUTPUT_PATH}libz.a", OUTPUT_PATH);
+
 const compile_combine_min = format(
   EMCC +
     " " +
     INCLUDES +
     " " +
     " {OUTPUT_PATH}libar.o " +
+    " {OUTPUT_PATH}libz.a " +
     MAIN_SOURCES +
     EXPORTED_FUNCTIONS +
     FLAGS +
@@ -194,7 +200,8 @@ const compile_combine_min = format(
     " " +
     DEFINES +
     BIND_FLAG +
-    " -o {OUTPUT_PATH}{BUILD_FILE} ",
+    " -o {OUTPUT_PATH}{BUILD_MIN_FILE} ",
+  OUTPUT_PATH,
   OUTPUT_PATH,
   OUTPUT_PATH,
   BUILD_MIN_FILE,
@@ -206,6 +213,7 @@ const compile_wasm = format(
     INCLUDES +
     " " +
     " {OUTPUT_PATH}libar.o " +
+    " {OUTPUT_PATH}libz.a " +
     MAIN_SOURCES +
     EXPORTED_FUNCTIONS +
     FLAGS +
@@ -214,7 +222,8 @@ const compile_wasm = format(
     DEFINES +
     BIND_FLAG +
     " -std=c++11 " +
-    " -o {OUTPUT_PATH}{BUILD_FILE} ",
+    " -o {OUTPUT_PATH}{BUILD_WASM_FILE} ",
+  OUTPUT_PATH,
   OUTPUT_PATH,
   OUTPUT_PATH,
   BUILD_WASM_FILE,
@@ -226,6 +235,7 @@ const compile_wasm_es6 = format(
     INCLUDES +
     " " +
     " {OUTPUT_PATH}libar.o " +
+    " {OUTPUT_PATH}libz.a " +
     MAIN_SOURCES +
     EXPORTED_FUNCTIONS +
     FLAGS +
@@ -235,7 +245,8 @@ const compile_wasm_es6 = format(
     DEFINES +
     BIND_FLAG +
     " -std=c++11 " +
-    " -o {OUTPUT_PATH}{BUILD_FILE} ",
+    " -o {OUTPUT_PATH}{BUILD_WASM_ES6_FILE} ",
+  OUTPUT_PATH,
   OUTPUT_PATH,
   OUTPUT_PATH,
   BUILD_WASM_ES6_FILE,
@@ -247,6 +258,7 @@ const compile_wasm_td = format(
     INCLUDES +
     " " +
     " {OUTPUT_PATH}libar.o " +
+    " {OUTPUT_PATH}libz.a " +
     MAIN_SOURCES +
     EXPORTED_FUNCTIONS +
     FLAGS +
@@ -256,7 +268,8 @@ const compile_wasm_td = format(
     TD +
     " -std=c++11 -pthread " +
     BIND_FLAG +
-    " -o {OUTPUT_PATH}{BUILD_FILE} ",
+    " -o {OUTPUT_PATH}{BUILD_WASM_TD_FILE} ",
+  OUTPUT_PATH,
   OUTPUT_PATH,
   OUTPUT_PATH,
   BUILD_WASM_TD_FILE,
@@ -303,6 +316,9 @@ function addJob(job) {
 
 addJob(clean_builds);
 addJob(compile_arlib);
+addJob(configure_zlib);
+addJob(build_zlib);
+addJob(copy_zlib);
 addJob(compile_wasm);
 addJob(compile_wasm_es6);
 addJob(compile_wasm_td);
