@@ -178,9 +178,7 @@ const compile_arlib = format(
   OUTPUT_PATH,
 );
 
-const configure_zlib = format(
-  "emcmake cmake -B emscripten/zlib/build -S emscripten/zlib .."
-);
+const configure_zlib = format("emcmake cmake -B emscripten/zlib/build -S emscripten/zlib ..");
 
 const build_zlib = format("cd emscripten/zlib/build && emmake make");
 
