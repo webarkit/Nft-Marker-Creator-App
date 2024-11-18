@@ -5,8 +5,7 @@
 
 let exec = require("child_process").exec,
   path = require("path"),
-  fs = require("fs"),
-  child;
+    fs = require("fs");
 
 const HAVE_NFT = 1;
 
@@ -43,7 +42,7 @@ MAIN_SOURCES = MAIN_SOURCES.map(function (src) {
   return path.resolve(SOURCE_PATH, src);
 }).join(" ");
 
-let srcTest = path.resolve(__dirname, WEBARKITLIB_ROOT + "/lib/SRC/");
+//let srcTest = path.resolve(__dirname, WEBARKITLIB_ROOT + "/lib/SRC/");
 
 // prettier-ignore
 let ar_sources = [
@@ -111,7 +110,6 @@ if (HAVE_NFT) DEFINES += " -D HAVE_NFT ";
 const TD = " -D HAVE_THREADING ";
 
 let FLAGS = "" + OPTIMIZE_FLAGS;
-// var FLAGS = '';
 FLAGS += " -Wno-warn-absolute-paths ";
 FLAGS += " -s TOTAL_MEMORY=" + MEM + " ";
 FLAGS += " -s ALLOW_MEMORY_GROWTH=1 ";
@@ -179,7 +177,7 @@ function clean_builds() {
 }
 
 const compile_arlib = format(
-    EMCC + " " + INCLUDES + " " + ar_sources.join(" ") + FLAGS + " " + DEFINES + BIND_FLAG + " -r -o {OUTPUT_PATH}libar.o ",
+    EMCC + " " + INCLUDES + " " + ar_sources.join(" ") + FLAGS + " " + DEFINES + " -r -o {OUTPUT_PATH}libar.o ",
   OUTPUT_PATH,
 );
 
