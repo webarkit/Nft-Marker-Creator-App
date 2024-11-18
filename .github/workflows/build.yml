@@ -4,10 +4,8 @@ on:
   push:
     branches:
       - '**'
-  create:
     tags:
       - '**'
-
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -65,7 +63,12 @@ jobs:
         with:
           default_author: github_actions
           message: new build files from action
-          add: '["build"]'
+          add: |
+            - build/NftMarkerCreator.min.js
+            - build/NftMarkerCreator_ES6_wasm.js
+            - build/NftMarkerCreator_wasm.js
+            - build/NftMarkerCreator_wasm.thread.js
+            - src/NFTMarkerCreator.js
 
       - name: Release
         uses: softprops/action-gh-release@v2
