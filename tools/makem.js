@@ -5,7 +5,7 @@
 
 let exec = require("child_process").exec,
   path = require("path"),
-    fs = require("fs");
+  fs = require("fs");
 
 const HAVE_NFT = 1;
 
@@ -128,7 +128,7 @@ const SINGLE_FILE_FLAG = " -s SINGLE_FILE=1 ";
 const BIND_FLAG = " --bind ";
 
 const EXPORTED_FUNCTIONS =
-    ' -s EXPORTED_FUNCTIONS=["_compressZip,_malloc,_free"] -s EXPORTED_RUNTIME_METHODS=["FS,stringToUTF8"] ';
+  ' -s EXPORTED_FUNCTIONS=["_compressZip,_malloc,_free"] -s EXPORTED_RUNTIME_METHODS=["FS,stringToUTF8"] ';
 
 /* DEBUG FLAGS */
 let DEBUG_FLAGS = " -g ";
@@ -177,7 +177,7 @@ function clean_builds() {
 }
 
 const compile_arlib = format(
-    EMCC + " " + INCLUDES + " " + ar_sources.join(" ") + FLAGS + " " + DEFINES + " -r -o {OUTPUT_PATH}libar.o ",
+  EMCC + " " + INCLUDES + " " + ar_sources.join(" ") + FLAGS + " " + DEFINES + " -r -o {OUTPUT_PATH}libar.o ",
   OUTPUT_PATH,
 );
 
