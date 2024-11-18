@@ -39,5 +39,6 @@ COPY docker/scripts /scripts/
 
 RUN dos2unix /scripts/docker/entrypoint.sh
 
-#RUN chmod +x /scripts/docker/entrypoint.sh
+RUN chmod +x /scripts/docker/entrypoint.sh
+
 ENTRYPOINT ["/scripts/docker/entrypoint.sh"]
