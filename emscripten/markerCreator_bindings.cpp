@@ -1,5 +1,8 @@
 #include <emscripten/bind.h>
 #include <emscripten/val.h>
+#include <emscripten.h>
+
+using namespace emscripten;
 
 int createNftDataSet_em(emscripten::val imgData, float dpiIn, int xsizeIn,
                         int ysizeIn, int ncIn, std::string cmdStr) {
@@ -14,6 +17,6 @@ int compressZip_em(std::string srcStr, int srclen) {
 }
 
 EMSCRIPTEN_BINDINGS(markerCreator_bindings) {
-  emscripten::function("createNftDataSet", &createNftDataSet_em);
-  emscripten::function("compressZip", &compressZip_em);
+  function("createNftDataSet", &createNftDataSet_em);
+  function("compressZip", &compressZip_em);
 };
