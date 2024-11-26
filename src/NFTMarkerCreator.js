@@ -223,7 +223,7 @@ Module.onRuntimeInitialized = async function () {
 
     let contentBin = Module.FS.readFile("tempBinFile.bin");
 
-    fs.writeFileSync(path.join(__dirname, '/output/') + fileName + ".zft", contentBin);
+    fs.writeFileSync(path.join(__dirname, "/output/") + fileName + ".zft", contentBin);
     //fs.writeFileSync(outputPath + fileName + ".zft", contentBin);
 
     Module._free(StrBufferZip);
