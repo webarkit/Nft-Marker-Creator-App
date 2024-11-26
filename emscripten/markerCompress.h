@@ -1,11 +1,9 @@
+#ifndef MARKERCOMPRESS_H
+#define MARKERCOMPRESS_H
+
 #include <stdio.h>
+#include <string>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+int compressZip(char *src, int srclen);
 
-uint compressZip(char* src, int srclen);
-
-#ifdef __cplusplus
-}
-#endif
+#endif // MARKERCOMPRESS_H

@@ -56,6 +56,7 @@
 #include "AR2/featureSet.h"
 #include "AR2/util.h"
 #include "KPM/kpm.h"
+#include "markerCompress.h"
 #ifdef _WIN32
 #define MAXPATHLEN MAX_PATH
 #else

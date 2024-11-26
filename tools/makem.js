@@ -125,7 +125,7 @@ const SINGLE_FILE_FLAG = " -s SINGLE_FILE=1 ";
 const BIND_FLAG = " --bind ";
 
 const EXPORTED_FUNCTIONS =
-  ' -s EXPORTED_FUNCTIONS=["_compressZip,_malloc,_free"] -s EXPORTED_RUNTIME_METHODS=["FS,stringToUTF8"] ';
+  ' -s EXPORTED_FUNCTIONS=["_malloc,_free"] -s EXPORTED_RUNTIME_METHODS=["FS,stringToUTF8,lengthBytesUTF8"] ';
 
 /* DEBUG FLAGS */
 let DEBUG_FLAGS = " -g ";
@@ -211,7 +211,8 @@ const compile_wasm = format(
     INCLUDES +
     " " +
     " {OUTPUT_PATH}libar.o " +
-    " {OUTPUT_PATH}libz.a " +
+    //" {OUTPUT_PATH}libz.a " +
+    " -sUSE_ZLIB=1 " +
     MAIN_SOURCES +
     EXPORTED_FUNCTIONS +
     FLAGS +
@@ -223,7 +224,7 @@ const compile_wasm = format(
     " -o {OUTPUT_PATH}{BUILD_WASM_FILE} ",
   OUTPUT_PATH,
   OUTPUT_PATH,
-  OUTPUT_PATH,
+  //OUTPUT_PATH,
   BUILD_WASM_FILE,
 );
 
