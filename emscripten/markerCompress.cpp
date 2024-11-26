@@ -1,15 +1,6 @@
-#include <emscripten.h>
-
-#ifdef _WIN32
-#include <Windows.h>
-#else
-#include <sys/stat.h>
-#endif
-
 #include "zlib/zlib.h"
 #include <AR/ar.h>
 #include <stdint.h>
-#include <stdio.h>
 #include <stdlib.h>
 
 
