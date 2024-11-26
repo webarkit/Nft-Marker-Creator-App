@@ -36,6 +36,6 @@
   "license": "LGPL-3.0",
   "devDependencies": {
     "jest": "^29.7.0",
-    "prettier": "^3.3.3"
+    "prettier": "3.4.1"
   }
 }
