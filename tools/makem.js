@@ -211,8 +211,7 @@ const compile_wasm = format(
     INCLUDES +
     " " +
     " {OUTPUT_PATH}libar.o " +
-    //" {OUTPUT_PATH}libz.a " +
-    " -sUSE_ZLIB=1 " +
+    " {OUTPUT_PATH}libz.a " +
     MAIN_SOURCES +
     EXPORTED_FUNCTIONS +
     FLAGS +
@@ -224,7 +223,7 @@ const compile_wasm = format(
     " -o {OUTPUT_PATH}{BUILD_WASM_FILE} ",
   OUTPUT_PATH,
   OUTPUT_PATH,
-  //OUTPUT_PATH,
+    OUTPUT_PATH,
   BUILD_WASM_FILE,
 );
 
