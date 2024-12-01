@@ -1,8 +1,5 @@
 #include "zlib/zlib.h"
 #include <AR/ar.h>
-#include <stdint.h>
-#include <stdlib.h>
-
 
 static const char *zipname = "/tempBinFile.bin";
 

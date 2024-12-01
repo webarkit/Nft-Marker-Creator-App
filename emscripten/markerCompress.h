@@ -2,7 +2,6 @@
 #define MARKERCOMPRESS_H
 
 #include <stdio.h>
-#include <string>
 
 int compressZip(char *src, int srclen);
 
