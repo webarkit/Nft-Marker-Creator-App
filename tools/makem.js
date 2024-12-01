@@ -127,7 +127,7 @@ const SINGLE_FILE_FLAG = " -s SINGLE_FILE=1 ";
 const BIND_FLAG = " --bind ";
 
 const EXPORTED_FUNCTIONS =
-    ' -s EXPORTED_FUNCTIONS=["_malloc,_free"] -s EXPORTED_RUNTIME_METHODS=["FS,stringToUTF8,lengthBytesUTF8"] ';
+  ' -s EXPORTED_FUNCTIONS=["_malloc,_free"] -s EXPORTED_RUNTIME_METHODS=["FS,stringToUTF8,lengthBytesUTF8"] ';
 
 /* DEBUG FLAGS */
 let DEBUG_FLAGS = " -g ";
@@ -176,7 +176,17 @@ function clean_builds() {
 }
 
 const compile_arlib = format(
-  EMCC + " " + INCLUDES + " " + ar_sources.join(" ") + FLAGS + " " + ZLIB_FLAG + " " + DEFINES + " -r -o {OUTPUT_PATH}libar.o ",
+  EMCC +
+    " " +
+    INCLUDES +
+    " " +
+    ar_sources.join(" ") +
+    FLAGS +
+    " " +
+    ZLIB_FLAG +
+    " " +
+    DEFINES +
+    " -r -o {OUTPUT_PATH}libar.o ",
   OUTPUT_PATH,
 );
 
