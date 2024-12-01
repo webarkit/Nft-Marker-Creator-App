@@ -127,7 +127,7 @@ const SINGLE_FILE_FLAG = " -s SINGLE_FILE=1 ";
 const BIND_FLAG = " --bind ";
 
 const EXPORTED_FUNCTIONS =
-  ' -s EXPORTED_FUNCTIONS=["_compressZip,_malloc,_free"] -s EXPORTED_RUNTIME_METHODS=["FS,stringToUTF8"] ';
+    ' -s EXPORTED_FUNCTIONS=["_malloc,_free"] -s EXPORTED_RUNTIME_METHODS=["FS,stringToUTF8,lengthBytesUTF8"] ';
 
 /* DEBUG FLAGS */
 let DEBUG_FLAGS = " -g ";

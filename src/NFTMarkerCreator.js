@@ -212,15 +212,19 @@ Module.onRuntimeInitialized = async function () {
 
     let strObj = JSON.stringify(obj);
 
-    let StrBufferZip = Module._malloc(strObj.length + 1);
+    let lengthStrObj = Module.lengthBytesUTF8(strObj);
+
+    let StrBufferZip = Module._malloc(lengthStrObj + 1);
+
     Module.stringToUTF8(strObj, StrBufferZip);
 
-    Module._compressZip(StrBufferZip, strObj.length);
+    //Module._compressZip(StrBufferZip, strObj.length);
+    Module.compressZip(strObj, strObj.length);
 
     let contentBin = Module.FS.readFile("tempBinFile.bin");
 
-    // fs.writeFileSync(path.join(__dirname, '/output/') + fileName + ".zft", contentBin);
-    fs.writeFileSync(outputPath + fileName + ".zft", contentBin);
+    fs.writeFileSync(path.join(__dirname, "/output/") + fileName + ".zft", contentBin);
+    //fs.writeFileSync(outputPath + fileName + ".zft", contentBin);
 
     Module._free(StrBufferZip);
 
