@@ -56,6 +56,7 @@
 #include <sys/param.h> // for MAXPATHLEN
 #include <ctime> // time(), localtime(), strftime()
 #include <chrono>
+#include <algorithm>
 
 #ifdef HAVE_THREADING
 #include <thread>
@@ -72,9 +73,6 @@
 #define KPM_MINIMUM_IMAGE_SIZE 28 // Filter size for 1 octaves plus 1.
 // #define KPM_MINIMUM_IMAGE_SIZE 196 // Filter size for 4 octaves plus 1.
 
-#ifndef MIN
-#define MIN(x, y) (x < y ? x : y)
-#endif
 
 enum
 {
@@ -569,7 +567,7 @@ static int setDPI(void)
     int i;
 
     // Determine minimum allowable DPI, truncated to 3 decimal places.
-    dpiMinAllowable = truncf(((float)KPM_MINIMUM_IMAGE_SIZE / (float)(MIN(xsize, ysize))) * dpi * 1000.0) / 1000.0f;
+    dpiMinAllowable = truncf(((float)KPM_MINIMUM_IMAGE_SIZE / (float)(std::min(xsize, ysize))) * dpi * 1000.0) / 1000.0f;
     ARLOGi(" min allow %f.\n", dpiMinAllowable);
     if (background)
     {
