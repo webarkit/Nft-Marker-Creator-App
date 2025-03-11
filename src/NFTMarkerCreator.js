@@ -2,7 +2,10 @@ const path = require("path");
 const fs = require("fs");
 const sharp = require("sharp");
 const { prompt } = require("enquirer");
-const Module = require("../build/NftMarkerCreator_wasm.js");
+const useThreading = process.argv.includes("--threaded");
+const Module = useThreading
+  ? require("../build/NftMarkerCreator_wasm.thread.js")
+  : require("../build/NftMarkerCreator_wasm.js");
 
 // GLOBAL VARs
 const params = [];
