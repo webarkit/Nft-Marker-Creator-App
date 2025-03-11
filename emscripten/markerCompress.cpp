@@ -1,11 +1,10 @@
 #include "zlib/zlib.h"
 #include <AR/ar.h>
+#include <fstream>
 
 static const char *zipname = "/tempBinFile.bin";
 
 int compressZip(char *src, int srclen) {
-  FILE *fp;
-
   char *b = new char[srclen];
 
   printf("Uncompressed size is: %lu", strlen(src));
@@ -26,9 +25,9 @@ int compressZip(char *src, int srclen) {
 
   printf("Compressed size is: %lu\n", strlen(b));
 
-  fp = fopen(zipname, "wb");
-  fwrite(b, defstream.total_out, 1, fp);
-  fclose(fp);
+  std::ofstream outFile(zipname, std::ios::binary);
+  outFile.write(b, defstream.total_out);
+  outFile.close();
 
   delete[] b;
 
