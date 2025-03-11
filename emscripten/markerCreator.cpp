@@ -34,7 +34,7 @@
  *
  *  Copyright 2015 Daqri, LLC.
  *  Copyright 2007-2015 ARToolworks, Inc.
- *  Copyright 2023 WebARKit org.
+ *  Copyright 2023-2025 WebARKit org.
  *
  *  Author(s): Hirokazu Kato, Philip Lamb, Daniel Fernandez, Walter Perdan
  *
@@ -53,7 +53,6 @@
 #include "AR2/util.h"
 #include "KPM/kpm.h"
 #include "markerCompress.h"
-#include <sys/param.h> // for MAXPATHLEN
 #include <ctime> // time(), localtime(), strftime()
 #include <chrono>
 #include <algorithm>
@@ -63,16 +62,17 @@
 #include <mutex>
 #endif
 
-#define KPM_SURF_FEATURE_DENSITY_L0 70
-#define KPM_SURF_FEATURE_DENSITY_L1 100
-#define KPM_SURF_FEATURE_DENSITY_L2 150
-#define KPM_SURF_FEATURE_DENSITY_L3 200
+constexpr int KPM_SURF_FEATURE_DENSITY_L0 = 70;
+constexpr int KPM_SURF_FEATURE_DENSITY_L1 = 100;
+constexpr int KPM_SURF_FEATURE_DENSITY_L2 = 150;
+constexpr int KPM_SURF_FEATURE_DENSITY_L3 = 200;
 
-#define TRACKING_EXTRACTION_LEVEL_DEFAULT 2
-#define INITIALIZATION_EXTRACTION_LEVEL_DEFAULT 1
-#define KPM_MINIMUM_IMAGE_SIZE 28 // Filter size for 1 octaves plus 1.
+constexpr int TRACKING_EXTRACTION_LEVEL_DEFAULT = 2;
+constexpr int INITIALIZATION_EXTRACTION_LEVEL_DEFAULT = 1;
+constexpr int KPM_MINIMUM_IMAGE_SIZE = 28; // Filter size for 1 octaves plus 1.
 // #define KPM_MINIMUM_IMAGE_SIZE 196 // Filter size for 4 octaves plus 1.
 
+constexpr int MC_MAX_PATH = 1024;
 
 enum
 {
@@ -91,7 +91,7 @@ static char pathToFiles[9] = "/marker/";
 static int genfset = 1;
 static int genfset3 = 1;
 
-static char filename[MAXPATHLEN] = "";
+static char filename[MC_MAX_PATH] = "";
 static AR2JpegImageT *jpegImage;
 // static ARUint8             *image;
 static int xsize, ysize;
@@ -112,8 +112,8 @@ static int tracking_extraction_level = -1; // Allows specification from command-
 static int initialization_extraction_level = -1;
 
 static int background = 0;
-static char logfile[MAXPATHLEN] = "";
-static char exitcodefile[MAXPATHLEN] = "";
+static char logfile[MC_MAX_PATH] = "";
+static char exitcodefile[MC_MAX_PATH] = "";
 static char exitcode = -1;
 #define EXIT(c)       \
     {                 \
