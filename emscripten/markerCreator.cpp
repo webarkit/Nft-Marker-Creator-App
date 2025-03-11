@@ -43,8 +43,8 @@
  */
 
 #include <emscripten/emscripten.h>
-#include <stdio.h>
-#include <string.h>
+#include <cstdio>
+#include <cstring>
 #include "AR/ar.h"
 #include "AR2/config.h"
 #include "AR2/imageFormat.h"
@@ -53,12 +53,8 @@
 #include "AR2/util.h"
 #include "KPM/kpm.h"
 #include "markerCompress.h"
-#include <sys/param.h> // MAXPATHLEN
-#if defined(__APPLE__) || defined(__linux__)
-#define HAVE_DAEMON_FUNC 1
-#include <unistd.h>
-#endif
-#include <time.h> // time(), localtime(), strftime()
+#include <sys/param.h> // for MAXPATHLEN
+#include <ctime> // time(), localtime(), strftime()
 #include <chrono>
 
 #ifdef HAVE_THREADING
