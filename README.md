@@ -25,7 +25,7 @@ This project is based on the original **NFT Marker Creator** by [Carnaux](https:
 
    `nvm install`
 
-   it will download the node version specified in the `.nvmrc` file. You need to install nvm first if you don't have it. Then run `nvm use 18` to use the node version specified in the `.nvmrc` file.
+   it will download the node version specified in the `.nvmrc` file. You need to install nvm first if you don't have it. Then run `nvm use 20` to use the node version specified in the `.nvmrc` file.
 
    Then finally run
 
