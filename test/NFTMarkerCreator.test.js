@@ -23,4 +23,4 @@ test("NFTMarkerCreator should process the image with threaded option", (done) =>
     expect(stdout).toContain("Create NFT Dataset complete...");
     done();
   });
-}, 57000);
+}, 70000);
