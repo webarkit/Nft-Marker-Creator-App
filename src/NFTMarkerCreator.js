@@ -1,9 +1,11 @@
 if (!process.env.NODE_OPTIONS) {
-  process.env.NODE_OPTIONS = '--max-old-space-size=4096'; // Set memory limit to 4GB
-  require('child_process').spawn(process.argv.shift(), process.argv, {
-    env: process.env,
-    stdio: 'inherit'
-  }).on('exit', process.exit);
+  process.env.NODE_OPTIONS = "--max-old-space-size=4096"; // Set memory limit to 4GB
+  require("child_process")
+    .spawn(process.argv.shift(), process.argv, {
+      env: process.env,
+      stdio: "inherit",
+    })
+    .on("exit", process.exit);
   return;
 }
 
@@ -249,11 +251,17 @@ Module.onRuntimeInitialized = async function () {
         if (!fs.existsSync(markerDir)) {
           fs.mkdirSync(markerDir);
         }
-        let demoHTML = fs.readFileSync(path.join(__dirname, "./../demo/nft.html")).toString("utf8").split("\n");
+        let demoHTML = fs
+          .readFileSync(path.join(__dirname, "./../demo/nft.html"))
+          .toString("utf8")
+          .split("\n");
         addNewMarker(demoHTML, fileName);
         let newHTML = demoHTML.join("\n");
 
-        fs.writeFileSync(path.join(__dirname, "./../demo/nft.html"), newHTML, { encoding: "utf8", flag: "w" });
+        fs.writeFileSync(path.join(__dirname, "./../demo/nft.html"), newHTML, {
+          encoding: "utf8",
+          flag: "w",
+        });
 
         const files = fs.readdirSync(markerDir);
         for (const file of files) {
@@ -283,11 +291,17 @@ Module.onRuntimeInitialized = async function () {
         if (!fs.existsSync(markerDir)) {
           fs.mkdirSync(markerDir);
         }
-        let demoHTML = fs.readFileSync(path.join(__dirname, "./../demo/nft.html")).toString("utf8").split("\n");
+        let demoHTML = fs
+          .readFileSync(path.join(__dirname, "./../demo/nft.html"))
+          .toString("utf8")
+          .split("\n");
         addNewMarker(demoHTML, fileName);
         let newHTML = demoHTML.join("\n");
 
-        fs.writeFileSync(path.join(__dirname, "./../demo/nft.html"), newHTML, { encoding: "utf8", flag: "w" });
+        fs.writeFileSync(path.join(__dirname, "./../demo/nft.html"), newHTML, {
+          encoding: "utf8",
+          flag: "w",
+        });
 
         const files = fs.readdirSync(markerDir);
         for (const file of files) {
