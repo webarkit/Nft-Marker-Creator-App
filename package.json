@@ -25,7 +25,7 @@
     "sharp": "0.33.5"
   },
   "scripts": {
-    "test": "jest",
+    "test": "jest --detectOpenHandles",
     "build-local": "node tools/makem.js; echo Built at `date`",
     "build-docker": "docker exec emscripten-nft-marker-creator-app npm run build-local",
     "demo": "cd demo && node demoServer.js",
