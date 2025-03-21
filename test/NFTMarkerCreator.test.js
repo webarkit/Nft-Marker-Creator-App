@@ -12,3 +12,15 @@ test("NFTMarkerCreator should process the image", (done) => {
     done();
   });
 }, 57000);
+
+test("NFTMarkerCreator should process the image with threaded option", (done) => {
+  const scriptPath = path.join(__dirname, "../src/NFTMarkerCreator.js");
+  const imagePath = "../test/pinball-test.jpg";
+  const command = `node ${scriptPath} -I ${imagePath} --threaded`;
+
+  exec(command, (error, stdout, stderr) => {
+    expect(error).toBeNull();
+    expect(stdout).toContain("Create NFT Dataset complete...");
+    done();
+  });
+}, 57000);

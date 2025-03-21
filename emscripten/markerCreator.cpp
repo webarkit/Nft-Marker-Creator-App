@@ -56,6 +56,7 @@
 #include <ctime> // time(), localtime(), strftime()
 #include <chrono>
 #include <algorithm>
+#include "threaded_featureMap.cpp"
 
 #ifdef HAVE_THREADING
 #include <thread>
@@ -399,13 +400,19 @@ int createNftDataSet(ARUint8 *imageIn, float dpiIn, int xsizeIn, int ysizeIn, in
 
 #ifdef HAVE_THREADING
                 m.lock();
-#endif
+
+                featureMap = ar2GenFeatureMapThreaded(imageSet->scale[i],
+                    AR2_DEFAULT_TS1 * AR2_TEMP_SCALE, AR2_DEFAULT_TS2 * AR2_TEMP_SCALE,
+                    AR2_DEFAULT_GEN_FEATURE_MAP_SEARCH_SIZE1, AR2_DEFAULT_GEN_FEATURE_MAP_SEARCH_SIZE2,
+                    AR2_DEFAULT_MAX_SIM_THRESH2, AR2_DEFAULT_SD_THRESH2);
+
+#else
 
                 featureMap = ar2GenFeatureMap(imageSet->scale[i],
                                               AR2_DEFAULT_TS1 * AR2_TEMP_SCALE, AR2_DEFAULT_TS2 * AR2_TEMP_SCALE,
                                               AR2_DEFAULT_GEN_FEATURE_MAP_SEARCH_SIZE1, AR2_DEFAULT_GEN_FEATURE_MAP_SEARCH_SIZE2,
                                               AR2_DEFAULT_MAX_SIM_THRESH2, AR2_DEFAULT_SD_THRESH2);
-
+#endif
 #ifdef HAVE_THREADING
                 m.unlock();
 #endif

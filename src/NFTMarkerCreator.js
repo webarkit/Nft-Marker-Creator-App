@@ -1,3 +1,12 @@
+if (!process.env.NODE_OPTIONS) {
+  process.env.NODE_OPTIONS = '--max-old-space-size=4096'; // Set memory limit to 4GB
+  require('child_process').spawn(process.argv.shift(), process.argv, {
+    env: process.env,
+    stdio: 'inherit'
+  }).on('exit', process.exit);
+  return;
+}
+
 const path = require("path");
 const fs = require("fs");
 const sharp = require("sharp");
@@ -42,259 +51,263 @@ const imageData = {
 };
 
 Module.onRuntimeInitialized = async function () {
-  console.log("arguments...: ", process.argv);
+  try {
+    console.log("arguments...: ", process.argv);
 
-  for (let j = 2; j < process.argv.length; j++) {
-    if (process.argv[j].indexOf("-i") !== -1 || process.argv[j].indexOf("-I") !== -1) {
-      foundInputPath.b = true;
-      foundInputPath.i = j + 1;
-      j++;
-    } else if (process.argv[j] === "-NoConf") {
-      noConf = true;
-    } else if (process.argv[j] === "-Demo") {
-      withDemo = true;
-    } else if (process.argv[j] === "-zft") {
-      isZFT = true;
-    } else if (process.argv[j] === "-onlyConfidence") {
-      onlyConfidence = true;
-    } else if (process.argv[j].indexOf("-o") !== -1 || process.argv[j].indexOf("-O") !== -1) {
-      foundOutputPath.b = true;
-      foundOutputPath.i = j + 1;
-      j++;
+    for (let j = 2; j < process.argv.length; j++) {
+      if (process.argv[j].indexOf("-i") !== -1 || process.argv[j].indexOf("-I") !== -1) {
+        foundInputPath.b = true;
+        foundInputPath.i = j + 1;
+        j++;
+      } else if (process.argv[j] === "-NoConf") {
+        noConf = true;
+      } else if (process.argv[j] === "-Demo") {
+        withDemo = true;
+      } else if (process.argv[j] === "-zft") {
+        isZFT = true;
+      } else if (process.argv[j] === "-onlyConfidence") {
+        onlyConfidence = true;
+      } else if (process.argv[j].indexOf("-o") !== -1 || process.argv[j].indexOf("-O") !== -1) {
+        foundOutputPath.b = true;
+        foundOutputPath.i = j + 1;
+        j++;
+      } else {
+        console.log(process.argv[j]);
+        params.push(process.argv[j]);
+      }
+    }
+
+    if (!foundInputPath.b) {
+      const response = await prompt({
+        type: "input",
+        name: "inputPath",
+        message: "Image path not present, to continue provide a path to image:",
+      });
+      srcImage = response.inputPath;
     } else {
-      console.log(process.argv[j]);
-      params.push(process.argv[j]);
-    }
-  }
-
-  if (!foundInputPath.b) {
-    const response = await prompt({
-      type: "input",
-      name: "inputPath",
-      message: "Image path not present, to continue provide a path to image:",
-    });
-    srcImage = response.inputPath;
-  } else {
-    srcImage = process.argv[foundInputPath.i];
-  }
-
-  if (!srcImage) {
-    console.log("\nERROR: No image in INPUT command!\n e.g:(-i /PATH/TO/IMAGE)\n");
-    process.exit(1);
-  } else {
-    console.log("checking file path...: ", srcImage);
-    if (!srcImage.startsWith("/")) {
-      // Relative path
-      srcImage = path.join(__dirname, srcImage);
+      srcImage = process.argv[foundInputPath.i];
     }
 
-    console.log("image path is: ", srcImage);
-    // srcImage = path.join(__dirname, process.argv[foundInputPath.i]);
-  }
+    if (!srcImage) {
+      console.log("\nERROR: No image in INPUT command!\n e.g:(-i /PATH/TO/IMAGE)\n");
+      process.exit(1);
+    } else {
+      console.log("checking file path...: ", srcImage);
+      if (!srcImage.startsWith("/")) {
+        // Relative path
+        srcImage = path.join(__dirname, srcImage);
+      }
 
-  if (foundOutputPath.b) {
-    outputPath = process.argv[foundOutputPath.i];
-
-    if (!outputPath.startsWith("/")) {
-      // relative path
-      outputPath = path.join(__dirname, outputPath);
-      // outputPath = '/' + outputPath;
+      console.log("image path is: ", srcImage);
+      // srcImage = path.join(__dirname, process.argv[foundInputPath.i]);
     }
 
-    if (!outputPath.endsWith("/")) {
-      outputPath += "/";
+    if (foundOutputPath.b) {
+      outputPath = process.argv[foundOutputPath.i];
+
+      if (!outputPath.startsWith("/")) {
+        // relative path
+        outputPath = path.join(__dirname, outputPath);
+        // outputPath = '/' + outputPath;
+      }
+
+      if (!outputPath.endsWith("/")) {
+        outputPath += "/";
+      }
+
+      console.log("Set output path: " + outputPath);
     }
 
-    console.log("Set output path: " + outputPath);
-  }
+    let fileNameWithExt = path.basename(srcImage);
+    let fileName = path.parse(fileNameWithExt).name;
+    let extName = path.parse(fileNameWithExt).ext;
 
-  let fileNameWithExt = path.basename(srcImage);
-  let fileName = path.parse(fileNameWithExt).name;
-  let extName = path.parse(fileNameWithExt).ext;
-
-  let foundExt = false;
-  for (let ext in validImageExt) {
-    if (extName.toLowerCase() === validImageExt[ext]) {
-      foundExt = true;
-      break;
+    let foundExt = false;
+    for (let ext in validImageExt) {
+      if (extName.toLowerCase() === validImageExt[ext]) {
+        foundExt = true;
+        break;
+      }
     }
-  }
 
-  if (!foundExt) {
-    console.log("\nERROR: Invalid image TYPE!\n Valid types:(jpg,JPG,jpeg,JPEG,png,PNG)\n");
-    process.exit(1);
-  }
-
-  if (!fs.existsSync(srcImage)) {
-    console.log("\nERROR: Not possible to read image, probably invalid image PATH!\n");
-    process.exit(1);
-  } else {
-    buffer = fs.readFileSync(srcImage);
-  }
-
-  console.log("Check output path: " + outputPath);
-  if (!fs.existsSync(outputPath)) {
-    fs.mkdirSync(outputPath);
-  }
-
-  if (
-    extName.toLowerCase() === ".jpg" ||
-    extName.toLowerCase() === ".jpeg" ||
-    extName.toLowerCase() === ".png"
-  ) {
-    await processImage(buffer);
-  }
-
-  let confidence = calculateQuality();
-
-  let txt = " - - - - - ";
-  if (confidence.l !== 0) {
-    let str = txt.split(" ");
-    str.pop();
-    str.shift();
-    for (let i = 0; i < parseInt(confidence.l); i++) {
-      str[i] = " *";
+    if (!foundExt) {
+      console.log("\nERROR: Invalid image TYPE!\n Valid types:(jpg,JPG,jpeg,JPEG,png,PNG)\n");
+      process.exit(1);
     }
-    str.push(" ");
-    txt = str.join("");
-  }
 
-  if (onlyConfidence) {
-    console.log("%f", confidence.l);
+    if (!fs.existsSync(srcImage)) {
+      console.log("\nERROR: Not possible to read image, probably invalid image PATH!\n");
+      process.exit(1);
+    } else {
+      buffer = fs.readFileSync(srcImage);
+    }
+
+    console.log("Check output path: " + outputPath);
+    if (!fs.existsSync(outputPath)) {
+      fs.mkdirSync(outputPath);
+    }
+
+    if (
+      extName.toLowerCase() === ".jpg" ||
+      extName.toLowerCase() === ".jpeg" ||
+      extName.toLowerCase() === ".png"
+    ) {
+      await processImage(buffer);
+    }
+
+    let confidence = calculateQuality();
+
+    let txt = " - - - - - ";
+    if (confidence.l !== 0) {
+      let str = txt.split(" ");
+      str.pop();
+      str.shift();
+      for (let i = 0; i < parseInt(confidence.l); i++) {
+        str[i] = " *";
+      }
+      str.push(" ");
+      txt = str.join("");
+    }
+
+    if (onlyConfidence) {
+      console.log("%f", confidence.l);
+      process.exit(0);
+    }
+
+    console.log(
+      "\nConfidence level: [" + txt + "] %f/5 || Entropy: %f || Current max: 5.17 min: 4.6\n",
+      confidence.l,
+      confidence.e,
+    );
+
+    if (noConf) {
+      await askToContinue();
+    }
+
+    let paramStr = params.join(" ");
+
+    console.log("Write Success");
+
+    console.log("Continue to Create NftDataSet..");
+    Module.createNftDataSet(
+      imageData.array,
+      imageData.dpi,
+      imageData.sizeX,
+      imageData.sizeY,
+      imageData.nc,
+      paramStr,
+    );
+    console.log("Create NFT Dataset complete...");
+
+    let filenameIset = "tempFilename.iset";
+    let filenameFset = "tempFilename.fset";
+    let filenameFset3 = "tempFilename.fset3";
+
+    let ext = ".iset";
+    let ext2 = ".fset";
+    let ext3 = ".fset3";
+
+    let content = Module.FS.readFile(filenameIset);
+    let contentFset = Module.FS.readFile(filenameFset);
+    let contentFset3 = Module.FS.readFile(filenameFset3);
+
+    if (isZFT) {
+      console.log("CREATING ZFT FILE");
+      let iset = Buffer.from(content.buffer);
+      let fset = Buffer.from(contentFset.buffer);
+      let fset3 = Buffer.from(contentFset3.buffer);
+
+      let obj = {
+        iset: iset.toString("hex"),
+        fset: fset.toString("hex"),
+        fset3: fset3.toString("hex"),
+      };
+
+      let strObj = JSON.stringify(obj);
+
+      let lengthStrObj = Module.lengthBytesUTF8(strObj);
+
+      let StrBufferZip = Module._malloc(lengthStrObj + 1);
+
+      Module.stringToUTF8(strObj, StrBufferZip);
+
+      //Module._compressZip(StrBufferZip, strObj.length);
+      Module.compressZip(strObj, strObj.length);
+
+      let contentBin = Module.FS.readFile("tempBinFile.bin");
+
+      fs.writeFileSync(path.join(__dirname, "/output/") + fileName + ".zft", contentBin);
+      //fs.writeFileSync(outputPath + fileName + ".zft", contentBin);
+
+      Module._free(StrBufferZip);
+
+      if (withDemo) {
+        console.log("\nFinished marker creation!\nNow configuring demo! \n");
+
+        const markerDir = path.join(__dirname, "./../demo/public/marker/");
+
+        if (!fs.existsSync(markerDir)) {
+          fs.mkdirSync(markerDir);
+        }
+        let demoHTML = fs.readFileSync(path.join(__dirname, "./../demo/nft.html")).toString("utf8").split("\n");
+        addNewMarker(demoHTML, fileName);
+        let newHTML = demoHTML.join("\n");
+
+        fs.writeFileSync(path.join(__dirname, "./../demo/nft.html"), newHTML, { encoding: "utf8", flag: "w" });
+
+        const files = fs.readdirSync(markerDir);
+        for (const file of files) {
+          fs.unlink(path.join(markerDir, file), (err) => {
+            if (err) throw err;
+          });
+        }
+
+        fs.writeFileSync(markerDir + fileName + ".zft", contentBin);
+
+        console.log("Finished!\nTo run demo use: 'npm run demo'");
+      }
+    } else {
+      console.log("CREATING ISET, FSET AND FSET3 FILES");
+      // fs.writeFileSync(path.join(__dirname, outputPath) + fileName + ext, content);
+      // fs.writeFileSync(path.join(__dirname, outputPath) + fileName + ext2, contentFset);
+      // fs.writeFileSync(path.join(__dirname, outputPath) + fileName + ext3, contentFset3);
+      fs.writeFileSync(outputPath + fileName + ext, content);
+      fs.writeFileSync(outputPath + fileName + ext2, contentFset);
+      fs.writeFileSync(outputPath + fileName + ext3, contentFset3);
+
+      if (withDemo) {
+        console.log("\nFinished marker creation!\nNow configuring demo! \n");
+
+        const markerDir = path.join(__dirname, "./../demo/public/marker/");
+
+        if (!fs.existsSync(markerDir)) {
+          fs.mkdirSync(markerDir);
+        }
+        let demoHTML = fs.readFileSync(path.join(__dirname, "./../demo/nft.html")).toString("utf8").split("\n");
+        addNewMarker(demoHTML, fileName);
+        let newHTML = demoHTML.join("\n");
+
+        fs.writeFileSync(path.join(__dirname, "./../demo/nft.html"), newHTML, { encoding: "utf8", flag: "w" });
+
+        const files = fs.readdirSync(markerDir);
+        for (const file of files) {
+          fs.unlink(path.join(markerDir, file), (err) => {
+            if (err) throw err;
+          });
+        }
+
+        fs.writeFileSync(markerDir + fileName + ext, content);
+        fs.writeFileSync(markerDir + fileName + ext2, contentFset);
+        fs.writeFileSync(markerDir + fileName + ext3, contentFset3);
+
+        console.log("Finished!\nTo run demo use: 'npm run demo'");
+      }
+    }
+
     process.exit(0);
+  } catch (error) {
+    console.error("Error during NFT marker creation:", error);
   }
-
-  console.log(
-    "\nConfidence level: [" + txt + "] %f/5 || Entropy: %f || Current max: 5.17 min: 4.6\n",
-    confidence.l,
-    confidence.e,
-  );
-
-  if (noConf) {
-    await askToContinue();
-  }
-
-  let paramStr = params.join(" ");
-
-  console.log("Write Success");
-
-  console.log("Continue to Create NftDataSet..");
-  Module.createNftDataSet(
-    imageData.array,
-    imageData.dpi,
-    imageData.sizeX,
-    imageData.sizeY,
-    imageData.nc,
-    paramStr,
-  );
-  console.log("Create NFT Dataset complete...");
-
-  let filenameIset = "tempFilename.iset";
-  let filenameFset = "tempFilename.fset";
-  let filenameFset3 = "tempFilename.fset3";
-
-  let ext = ".iset";
-  let ext2 = ".fset";
-  let ext3 = ".fset3";
-
-  let content = Module.FS.readFile(filenameIset);
-  let contentFset = Module.FS.readFile(filenameFset);
-  let contentFset3 = Module.FS.readFile(filenameFset3);
-
-  if (isZFT) {
-    console.log("CREATING ZFT FILE");
-    let iset = Buffer.from(content.buffer);
-    let fset = Buffer.from(contentFset.buffer);
-    let fset3 = Buffer.from(contentFset3.buffer);
-
-    let obj = {
-      iset: iset.toString("hex"),
-      fset: fset.toString("hex"),
-      fset3: fset3.toString("hex"),
-    };
-
-    let strObj = JSON.stringify(obj);
-
-    let lengthStrObj = Module.lengthBytesUTF8(strObj);
-
-    let StrBufferZip = Module._malloc(lengthStrObj + 1);
-
-    Module.stringToUTF8(strObj, StrBufferZip);
-
-    //Module._compressZip(StrBufferZip, strObj.length);
-    Module.compressZip(strObj, strObj.length);
-
-    let contentBin = Module.FS.readFile("tempBinFile.bin");
-
-    fs.writeFileSync(path.join(__dirname, "/output/") + fileName + ".zft", contentBin);
-    //fs.writeFileSync(outputPath + fileName + ".zft", contentBin);
-
-    Module._free(StrBufferZip);
-
-    if (withDemo) {
-      console.log("\nFinished marker creation!\nNow configuring demo! \n");
-
-      const markerDir = path.join(__dirname, "./../demo/public/marker/");
-
-      if (!fs.existsSync(markerDir)) {
-        fs.mkdirSync(markerDir);
-      }
-      let demoHTML = fs.readFileSync(path.join(__dirname, "./../demo/nft.html")).toString("utf8").split("\n");
-      addNewMarker(demoHTML, fileName);
-      let newHTML = demoHTML.join("\n");
-
-      fs.writeFileSync(path.join(__dirname, "./../demo/nft.html"), newHTML, { encoding: "utf8", flag: "w" });
-
-      const files = fs.readdirSync(markerDir);
-      for (const file of files) {
-        fs.unlink(path.join(markerDir, file), (err) => {
-          if (err) throw err;
-        });
-      }
-
-      fs.writeFileSync(markerDir + fileName + ".zft", contentBin);
-
-      console.log("Finished!\nTo run demo use: 'npm run demo'");
-    }
-  } else {
-    console.log("CREATING ISET, FSET AND FSET3 FILES");
-    // fs.writeFileSync(path.join(__dirname, outputPath) + fileName + ext, content);
-    // fs.writeFileSync(path.join(__dirname, outputPath) + fileName + ext2, contentFset);
-    // fs.writeFileSync(path.join(__dirname, outputPath) + fileName + ext3, contentFset3);
-    fs.writeFileSync(outputPath + fileName + ext, content);
-    fs.writeFileSync(outputPath + fileName + ext2, contentFset);
-    fs.writeFileSync(outputPath + fileName + ext3, contentFset3);
-
-    if (withDemo) {
-      console.log("\nFinished marker creation!\nNow configuring demo! \n");
-
-      const markerDir = path.join(__dirname, "./../demo/public/marker/");
-
-      if (!fs.existsSync(markerDir)) {
-        fs.mkdirSync(markerDir);
-      }
-      let demoHTML = fs.readFileSync(path.join(__dirname, "./../demo/nft.html")).toString("utf8").split("\n");
-      addNewMarker(demoHTML, fileName);
-      let newHTML = demoHTML.join("\n");
-
-      fs.writeFileSync(path.join(__dirname, "./../demo/nft.html"), newHTML, { encoding: "utf8", flag: "w" });
-
-      const files = fs.readdirSync(markerDir);
-      for (const file of files) {
-        fs.unlink(path.join(markerDir, file), (err) => {
-          if (err) throw err;
-        });
-      }
-
-      fs.writeFileSync(markerDir + fileName + ext, content);
-      fs.writeFileSync(markerDir + fileName + ext2, contentFset);
-      fs.writeFileSync(markerDir + fileName + ext3, contentFset3);
-
-      console.log("Finished!\nTo run demo use: 'npm run demo'");
-    }
-  }
-
-  process.exit(0);
 };
 
 async function processImage(buf) {
@@ -323,10 +336,10 @@ async function processImage(buf) {
       } else {
         await metadataChannels();
       }
-      return image.raw().toBuffer();
+      return image.raw().toBuffer({ resolveWithObject: true });
     })
-    .then((data) => {
-      let dt = data.buffer;
+    .then(({ data, info }) => {
+      let dt = data;
 
       let verifyColorSpace = detectColorSpace(dt);
 
