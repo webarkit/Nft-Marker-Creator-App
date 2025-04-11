@@ -8,8 +8,6 @@
 #include <AR2/featureSet.h>
 #include <AR2/imageSet.h>
 
-// ...existing includes...
-
 static std::mutex g_mapLock;
 
 static int get_similarity( ARUint8 *imageBW, int xsize, int ysize,
@@ -119,9 +117,8 @@ return 0;
 AR2FeatureMapT *ar2GenFeatureMapThreaded(AR2ImageT *image,
                                          int ts1, int ts2,
                                          int search_size1, int search_size2,
-                                         float max_sim_thresh, float sd_thresh)
+                                         float max_sim_thresh, float sd_thresh, int threadCount)
 {
-    // ...existing variable declarations from featureMap.c...
     AR2FeatureMapT  *featureMap;
     int xsize = image->xsize;
     int ysize = image->ysize;
@@ -137,13 +134,12 @@ AR2FeatureMapT *ar2GenFeatureMapThreaded(AR2ImageT *image,
     float vlen;
     float max, sim;
     int ii, jj;
-    // ...existing code allocation from featureMap.c...
+
     arMalloc(fimage,   float,  xsize*ysize);
     arMalloc(fimage2,  float,  xsize*ysize);
     arMalloc(tmpl, float , (ts1+ts2+1)*(ts1+ts2+1));
 
     // Allocate the final featureMap object
-    // ...existing code...
     fp2 = fimage2;
     #if AR2_CAPABLE_ADAPTIVE_TEMPLATE
         p = image->imgBWBlur[1];
@@ -171,9 +167,6 @@ AR2FeatureMapT *ar2GenFeatureMapThreaded(AR2ImageT *image,
         }
     };
 
-    // Create threads for edge detection
-    int threadCount = std::thread::hardware_concurrency();
-    if (threadCount < 1) threadCount = 1;
     std::vector<std::thread> threads;
     int rowsPerThread = ysize / threadCount;
     int currentStart = 0;

@@ -111,6 +111,7 @@ static int featureDensity = -1;
 static int occ_size = -1;
 static int tracking_extraction_level = -1; // Allows specification from command-line.
 static int initialization_extraction_level = -1;
+static int threadCount = 1;
 
 static int background = 0;
 static char logfile[MC_MAX_PATH] = "";
@@ -235,6 +236,12 @@ int createNftDataSet(ARUint8 *imageIn, float dpiIn, int xsizeIn, int ysizeIn, in
         usage("Marker Generator");
     }
 
+    if (strstr(cmdStr, "--threaded") != NULL) {
+        char *result = strstr(cmdStr, "--threaded");
+        int pos = (result - cmdStr);
+        sscanf(&cmdStr[pos + 10], "%d", &threadCount);
+    }
+
     char *filename = strdup("tempFilename");
 
     // Print the start date and time.
@@ -355,6 +362,14 @@ int createNftDataSet(ARUint8 *imageIn, float dpiIn, int xsizeIn, int ysizeIn, in
 #ifdef HAVE_THREADING
     ARLOGi("   (Threading enabled).\n");
     m.lock();
+    int threadMaxCount = std::thread::hardware_concurrency();
+    ARLOGi("   (Max thread count: %d).\n", threadMaxCount);
+    if (threadCount < 1) threadCount = 1;
+    else if (threadCount > threadMaxCount){
+        threadCount = threadMaxCount;
+        ARLOGi("   (Thread count exceed Max thread count -> setting to max: %d).\n", threadMaxCount);
+    }
+    ARLOGi("Running with %d threads\n", threadCount);
 #endif
     imageSet = ar2GenImageSet(image, xsize, ysize, nc, dpi, dpi_list, dpi_num);
 #ifdef HAVE_THREADING
@@ -404,7 +419,7 @@ int createNftDataSet(ARUint8 *imageIn, float dpiIn, int xsizeIn, int ysizeIn, in
                 featureMap = ar2GenFeatureMapThreaded(imageSet->scale[i],
                     AR2_DEFAULT_TS1 * AR2_TEMP_SCALE, AR2_DEFAULT_TS2 * AR2_TEMP_SCALE,
                     AR2_DEFAULT_GEN_FEATURE_MAP_SEARCH_SIZE1, AR2_DEFAULT_GEN_FEATURE_MAP_SEARCH_SIZE2,
-                    AR2_DEFAULT_MAX_SIM_THRESH2, AR2_DEFAULT_SD_THRESH2);
+                    AR2_DEFAULT_MAX_SIM_THRESH2, AR2_DEFAULT_SD_THRESH2, threadCount);
 
 #else
 
