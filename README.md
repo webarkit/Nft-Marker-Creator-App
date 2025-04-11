@@ -53,6 +53,12 @@ node NFTMarkerCreator.js -i PATH/TO/IMAGE
 ```
 
 In the end of the process an "output" folder will be created (if it does not exist) with the marker files.
+You can run the the app with the threaded option to speed up the creation of the NFT markers:
+```
+cd src
+// In this case we run the app with 8 threads...
+node NFTMarkerCreator.js -i PATH/TO/IMAGE --threaded 8
+```
 
 You can use additional flags with the run command.
 
@@ -135,4 +141,5 @@ In VSCode you can run the `setup-docker` and `build-docker` command inside packa
 
 ## Planned Features
 
-- [ ] Multi threading support to speed up the creation of the markers.
+- [*] Multi threading support to speed up the creation of the markers.
+- [ ] Python version of the project and app.
