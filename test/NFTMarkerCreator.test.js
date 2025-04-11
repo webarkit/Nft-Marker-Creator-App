@@ -16,7 +16,7 @@ test("NFTMarkerCreator should process the image", (done) => {
 test("NFTMarkerCreator should process the image with threaded option", (done) => {
   const scriptPath = path.join(__dirname, "../src/NFTMarkerCreator.js");
   const imagePath = "../test/pinball-test.jpg";
-  const command = `node ${scriptPath} -I ${imagePath} --threaded`;
+  const command = `node ${scriptPath} -I ${imagePath} --threaded 4`;
 
   exec(command, (error, stdout, stderr) => {
     expect(error).toBeNull();
