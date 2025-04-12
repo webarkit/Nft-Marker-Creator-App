@@ -361,13 +361,14 @@ int createNftDataSet(ARUint8 *imageIn, float dpiIn, int xsizeIn, int ysizeIn, in
     ARLOGi("   (Source image xsize=%d, ysize=%d, channels=%d, dpi=%.1f).\n", xsize, ysize, nc, dpi);
 #ifdef HAVE_THREADING
     ARLOGi("   (Threading enabled).\n");
+    ARLOGi("   (threadCount from CLI: %d).\n", threadCount);
     m.lock();
     int threadMaxCount = std::thread::hardware_concurrency();
     ARLOGi("   (Max thread count: %d).\n", threadMaxCount);
     if (threadCount < 1) threadCount = 1;
     else if (threadCount > threadMaxCount){
         threadCount = threadMaxCount;
-        ARLOGi("   (Thread count exceed Max thread count -> setting to max: %d).\n", threadMaxCount);
+        ARLOGi("   (threadCount exceed 'Max thread count' -> setting to Max: %d).\n", threadMaxCount);
     }
     ARLOGi("Running with %d threads\n", threadCount);
 #endif
