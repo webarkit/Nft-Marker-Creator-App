@@ -15,6 +15,8 @@ Check out the wiki to learn how to generate good markers! https://github.com/Car
 
 This project is based on the original **NFT Marker Creator** by [Carnaux](https://github.com/Carnaux/NFT-Marker-Creator) but has been updated to work with the latest versions of Node and NPM, and also to work with the latest version of Emscripten, plus other improvements.
 
+**Now with threading support!!** Read more in _How to use it_ section
+
 ## Node app
 
 ### How to use it
@@ -141,5 +143,5 @@ In VSCode you can run the `setup-docker` and `build-docker` command inside packa
 
 ## Planned Features
 
-- [*] Multi threading support to speed up the creation of the markers.
+- [x] Multi threading support to speed up the creation of the markers.
 - [ ] Python version of the project and app.
