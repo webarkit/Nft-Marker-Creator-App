@@ -56,6 +56,7 @@ node NFTMarkerCreator.js -i PATH/TO/IMAGE
 
 In the end of the process an "output" folder will be created (if it does not exist) with the marker files.
 You can run the the app with the threaded option to speed up the creation of the NFT markers:
+
 ```
 cd src
 // In this case we run the app with 8 threads...
