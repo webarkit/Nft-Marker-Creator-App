@@ -405,76 +405,60 @@ int createNftDataSet(ARUint8 *imageIn, float dpiIn, int xsizeIn, int ysizeIn, in
         std::vector<std::thread> threads;
 #endif
 
+        const int occSizeLocal = occ_size;
+        const float maxThreshLocal = max_thresh;
+        const float minThreshLocal = min_thresh;
+        const float sdThreshLocal = sd_thresh;
+        const int threadCountLocal = threadCount;
+
         for (i = 0; i < imageSet->num; i++)
         {
 #ifdef HAVE_THREADING
-            threads.emplace_back([&, i]() {
+            threads.emplace_back([imageSet, featureSet, i, occSizeLocal, maxThreshLocal, minThreshLocal, sdThreshLocal, threadCountLocal]() {
                 ARLOGi("Start for %f dpi image.\n", imageSet->scale[i]->dpi);
 
-                AR2FeatureMapT* featureMap = ar2GenFeatureMapThreaded(
+                AR2FeatureMapT *featureMap = ar2GenFeatureMapThreaded(
                     imageSet->scale[i],
                     AR2_DEFAULT_TS1 * AR2_TEMP_SCALE, AR2_DEFAULT_TS2 * AR2_TEMP_SCALE,
                     AR2_DEFAULT_GEN_FEATURE_MAP_SEARCH_SIZE1, AR2_DEFAULT_GEN_FEATURE_MAP_SEARCH_SIZE2,
-                    AR2_DEFAULT_MAX_SIM_THRESH2, AR2_DEFAULT_SD_THRESH2, threadCount);
+                    AR2_DEFAULT_MAX_SIM_THRESH2, AR2_DEFAULT_SD_THRESH2, threadCountLocal);
 
-                if (featureMap == NULL)
+                if (!featureMap)
                 {
                     ARLOGe("Error!!\n");
                     EXIT(E_DATA_PROCESSING_ERROR);
                 }
                 ARLOGi("  Done.\n");
 
-#ifdef HAVE_THREADING
-                m.lock();
-#endif
-                featureSet->list[i].coord = ar2SelectFeature2(imageSet->scale[i], featureMap,
-                                                              AR2_DEFAULT_TS1 * AR2_TEMP_SCALE, AR2_DEFAULT_TS2 * AR2_TEMP_SCALE, AR2_DEFAULT_GEN_FEATURE_MAP_SEARCH_SIZE2,
-                                                              occ_size,
-                                                              max_thresh, min_thresh, sd_thresh, &num);
-#ifdef HAVE_THREADING
-                m.unlock();
-#endif
-                if (featureSet->list[i].coord == NULL)
-                    num = 0;
-                featureSet->list[i].num = num;
+                int localNum = 0;
+                {
+                    std::lock_guard<std::mutex> lock(m);
+                    featureSet->list[i].coord = ar2SelectFeature2(
+                        imageSet->scale[i], featureMap,
+                        AR2_DEFAULT_TS1 * AR2_TEMP_SCALE, AR2_DEFAULT_TS2 * AR2_TEMP_SCALE,
+                        AR2_DEFAULT_GEN_FEATURE_MAP_SEARCH_SIZE2,
+                        occSizeLocal, maxThreshLocal, minThreshLocal, sdThreshLocal, &localNum);
+                }
+
+                if (!featureSet->list[i].coord)
+                    localNum = 0;
+                featureSet->list[i].num = localNum;
                 featureSet->list[i].scale = i;
 
-                scale1 = 0.0f;
-                for (j = 0; j < imageSet->num; j++)
-                {
-                    if (imageSet->scale[j]->dpi < imageSet->scale[i]->dpi)
-                    {
-                        if (imageSet->scale[j]->dpi > scale1)
-                            scale1 = imageSet->scale[j]->dpi;
-                    }
-                }
-                if (scale1 == 0.0f)
-                {
-                    featureSet->list[i].mindpi = imageSet->scale[i]->dpi * 0.5f;
-                }
-                else
-                {
-                    featureSet->list[i].mindpi = scale1;
-                }
+                float minDpi = 0.0f;
+                for (int j = 0; j < imageSet->num; j++)
+                    if (imageSet->scale[j]->dpi < imageSet->scale[i]->dpi && imageSet->scale[j]->dpi > minDpi)
+                        minDpi = imageSet->scale[j]->dpi;
+                featureSet->list[i].mindpi = (minDpi == 0.0f) ? imageSet->scale[i]->dpi * 0.5f : minDpi;
 
-                scale1 = 0.0f;
-                for (j = 0; j < imageSet->num; j++)
-                {
-                    if (imageSet->scale[j]->dpi > imageSet->scale[i]->dpi)
-                    {
-                        if (scale1 == 0.0f || imageSet->scale[j]->dpi < scale1)
-                            scale1 = imageSet->scale[j]->dpi;
-                    }
-                }
-                if (scale1 == 0.0f)
-                {
-                    featureSet->list[i].maxdpi = imageSet->scale[i]->dpi * 2.0f;
-                }
-                else
-                {
-                    scale2 = imageSet->scale[i]->dpi;
-                    featureSet->list[i].maxdpi = scale2 * 0.8f + scale1 * 0.2f;
-                }
+                float nextHigher = 0.0f;
+                for (int j = 0; j < imageSet->num; j++)
+                    if (imageSet->scale[j]->dpi > imageSet->scale[i]->dpi &&
+                        (nextHigher == 0.0f || imageSet->scale[j]->dpi < nextHigher))
+                        nextHigher = imageSet->scale[j]->dpi;
+                featureSet->list[i].maxdpi = (nextHigher == 0.0f)
+                                             ? imageSet->scale[i]->dpi * 2.0f
+                                             : imageSet->scale[i]->dpi * 0.8f + nextHigher * 0.2f;
 
                 ar2FreeFeatureMap(featureMap);
             });
