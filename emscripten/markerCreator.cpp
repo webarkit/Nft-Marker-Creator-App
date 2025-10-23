@@ -409,29 +409,83 @@ int createNftDataSet(ARUint8 *imageIn, float dpiIn, int xsizeIn, int ysizeIn, in
         {
 #ifdef HAVE_THREADING
             threads.emplace_back([&, i]() {
-#else
-            {
-#endif
                 ARLOGi("Start for %f dpi image.\n", imageSet->scale[i]->dpi);
 
-#ifdef HAVE_THREADING
-                m.lock();
-
-                featureMap = ar2GenFeatureMapThreaded(imageSet->scale[i],
+                AR2FeatureMapT* featureMap = ar2GenFeatureMapThreaded(
+                    imageSet->scale[i],
                     AR2_DEFAULT_TS1 * AR2_TEMP_SCALE, AR2_DEFAULT_TS2 * AR2_TEMP_SCALE,
                     AR2_DEFAULT_GEN_FEATURE_MAP_SEARCH_SIZE1, AR2_DEFAULT_GEN_FEATURE_MAP_SEARCH_SIZE2,
                     AR2_DEFAULT_MAX_SIM_THRESH2, AR2_DEFAULT_SD_THRESH2, threadCount);
 
+                if (featureMap == NULL)
+                {
+                    ARLOGe("Error!!\n");
+                    EXIT(E_DATA_PROCESSING_ERROR);
+                }
+                ARLOGi("  Done.\n");
+
+#ifdef HAVE_THREADING
+                m.lock();
+#endif
+                featureSet->list[i].coord = ar2SelectFeature2(imageSet->scale[i], featureMap,
+                                                              AR2_DEFAULT_TS1 * AR2_TEMP_SCALE, AR2_DEFAULT_TS2 * AR2_TEMP_SCALE, AR2_DEFAULT_GEN_FEATURE_MAP_SEARCH_SIZE2,
+                                                              occ_size,
+                                                              max_thresh, min_thresh, sd_thresh, &num);
+#ifdef HAVE_THREADING
+                m.unlock();
+#endif
+                if (featureSet->list[i].coord == NULL)
+                    num = 0;
+                featureSet->list[i].num = num;
+                featureSet->list[i].scale = i;
+
+                scale1 = 0.0f;
+                for (j = 0; j < imageSet->num; j++)
+                {
+                    if (imageSet->scale[j]->dpi < imageSet->scale[i]->dpi)
+                    {
+                        if (imageSet->scale[j]->dpi > scale1)
+                            scale1 = imageSet->scale[j]->dpi;
+                    }
+                }
+                if (scale1 == 0.0f)
+                {
+                    featureSet->list[i].mindpi = imageSet->scale[i]->dpi * 0.5f;
+                }
+                else
+                {
+                    featureSet->list[i].mindpi = scale1;
+                }
+
+                scale1 = 0.0f;
+                for (j = 0; j < imageSet->num; j++)
+                {
+                    if (imageSet->scale[j]->dpi > imageSet->scale[i]->dpi)
+                    {
+                        if (scale1 == 0.0f || imageSet->scale[j]->dpi < scale1)
+                            scale1 = imageSet->scale[j]->dpi;
+                    }
+                }
+                if (scale1 == 0.0f)
+                {
+                    featureSet->list[i].maxdpi = imageSet->scale[i]->dpi * 2.0f;
+                }
+                else
+                {
+                    scale2 = imageSet->scale[i]->dpi;
+                    featureSet->list[i].maxdpi = scale2 * 0.8f + scale1 * 0.2f;
+                }
+
+                ar2FreeFeatureMap(featureMap);
+            });
 #else
+            {
+                ARLOGi("Start for %f dpi image.\n", imageSet->scale[i]->dpi);
 
                 featureMap = ar2GenFeatureMap(imageSet->scale[i],
                                               AR2_DEFAULT_TS1 * AR2_TEMP_SCALE, AR2_DEFAULT_TS2 * AR2_TEMP_SCALE,
                                               AR2_DEFAULT_GEN_FEATURE_MAP_SEARCH_SIZE1, AR2_DEFAULT_GEN_FEATURE_MAP_SEARCH_SIZE2,
                                               AR2_DEFAULT_MAX_SIM_THRESH2, AR2_DEFAULT_SD_THRESH2);
-#endif
-#ifdef HAVE_THREADING
-                m.unlock();
-#endif
 
                 if (featureMap == NULL)
                 {
@@ -494,8 +548,6 @@ int createNftDataSet(ARUint8 *imageIn, float dpiIn, int xsizeIn, int ysizeIn, in
 
                 ar2FreeFeatureMap(featureMap);
             }
-#ifdef HAVE_THREADING
-            );
 #endif
         }
 
