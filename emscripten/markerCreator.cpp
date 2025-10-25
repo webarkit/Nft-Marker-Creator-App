@@ -56,7 +56,6 @@
 #include <ctime> // time(), localtime(), strftime()
 #include <chrono>
 #include <algorithm>
-#include "threaded_featureMap.cpp"
 
 #ifdef HAVE_THREADING
 #include <thread>
@@ -414,14 +413,15 @@ int createNftDataSet(ARUint8 *imageIn, float dpiIn, int xsizeIn, int ysizeIn, in
         for (i = 0; i < imageSet->num; i++)
         {
 #ifdef HAVE_THREADING
-            threads.emplace_back([imageSet, featureSet, i, occSizeLocal, maxThreshLocal, minThreshLocal, sdThreshLocal, threadCountLocal]() {
+            threads.emplace_back([imageSet, featureSet, i, occSizeLocal, maxThreshLocal,
+                                  minThreshLocal, sdThreshLocal]() {
                 ARLOGi("Start for %f dpi image.\n", imageSet->scale[i]->dpi);
 
-                AR2FeatureMapT *featureMap = ar2GenFeatureMapThreaded(
+                AR2FeatureMapT *featureMap = ar2GenFeatureMap(
                     imageSet->scale[i],
                     AR2_DEFAULT_TS1 * AR2_TEMP_SCALE, AR2_DEFAULT_TS2 * AR2_TEMP_SCALE,
                     AR2_DEFAULT_GEN_FEATURE_MAP_SEARCH_SIZE1, AR2_DEFAULT_GEN_FEATURE_MAP_SEARCH_SIZE2,
-                    AR2_DEFAULT_MAX_SIM_THRESH2, AR2_DEFAULT_SD_THRESH2, threadCountLocal);
+                    AR2_DEFAULT_MAX_SIM_THRESH2, AR2_DEFAULT_SD_THRESH2);
 
                 if (!featureMap)
                 {
