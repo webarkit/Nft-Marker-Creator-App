@@ -47,41 +47,41 @@ Outputs land in `src/output`. See the sections below for setup, flags, and optio
 1. Place the image you want to convert inside the `src` folder (either directly or inside a subfolder).
 2. Generate the marker:
 
-  ```bash
-   cd src
-   node NFTMarkerCreator.js -i PATH/TO/IMAGE
-   ```
+```bash
+ cd src
+ node NFTMarkerCreator.js -i PATH/TO/IMAGE
+```
 
-  The output files are saved in the `src/output` directory. Use `--threaded <count>` to speed up processing; start with the number of physical CPU cores and adjust based on thermals and available memory (e.g., laptops may peak at 4 threads, workstations can push higher):
+The output files are saved in the `src/output` directory. Use `--threaded <count>` to speed up processing; start with the number of physical CPU cores and adjust based on thermals and available memory (e.g., laptops may peak at 4 threads, workstations can push higher):
 
-  ```bash
-  cd src
-  node NFTMarkerCreator.js -i PATH/TO/IMAGE --threaded <number_of_threads>
-  ```
+```bash
+cd src
+node NFTMarkerCreator.js -i PATH/TO/IMAGE --threaded <number_of_threads>
+```
 
 ### CLI flags ⚙️
 
 Example: `node NFTMarkerCreator.js -i image.png -level=4 -min_thresh=8`
 
-| Flag | Description | Default |
-| --- | --- | --- |
-| `-zft` | Create only the `.zft` file | — |
-| `-noConf` | Skip the confidence confirmation prompt | — |
-| `-Demo` | Generate the demo configuration alongside the marker | — |
-| `-level=n` | Feature density preset from 0 (few) to 4 (many) | `2` |
-| `-sd_thresh=<value>` | Override standard deviation threshold | Auto |
-| `-max_thresh=<value>` | Override maximum feature threshold | Auto |
-| `-min_thresh=<value>` | Override minimum feature threshold | Auto |
-| `-leveli=n` | Initial feature density preset from 0 to 3 | `1` |
-| `-feature_density=<value>` | Manual feature density multiplier | Auto |
-| `-dpi=f` | Force a DPI value instead of the embedded JPEG DPI | Image metadata |
-| `-max_dpi=<value>` | Cap the maximum DPI processed for multi-scale markers | Auto |
-| `-min_dpi=<value>` | Floor the minimum DPI processed for multi-scale markers | Auto |
-| `-background` | Run detached in the background (macOS/Linux only) | — |
-| `--help`, `-h`, `-?` | Print CLI usage information | — |
-| `--threaded <n>` | Run feature extraction using `n` threads | `1` |
-| `-nofset` / `-fset` | Disable or force generation of the `.fset` file | Enabled |
-| `-nofset3` / `-fset3` | Disable or force generation of the `.fset3` file | Enabled |
+| Flag                       | Description                                             | Default        |
+| -------------------------- | ------------------------------------------------------- | -------------- |
+| `-zft`                     | Create only the `.zft` file                             | —              |
+| `-noConf`                  | Skip the confidence confirmation prompt                 | —              |
+| `-Demo`                    | Generate the demo configuration alongside the marker    | —              |
+| `-level=n`                 | Feature density preset from 0 (few) to 4 (many)         | `2`            |
+| `-sd_thresh=<value>`       | Override standard deviation threshold                   | Auto           |
+| `-max_thresh=<value>`      | Override maximum feature threshold                      | Auto           |
+| `-min_thresh=<value>`      | Override minimum feature threshold                      | Auto           |
+| `-leveli=n`                | Initial feature density preset from 0 to 3              | `1`            |
+| `-feature_density=<value>` | Manual feature density multiplier                       | Auto           |
+| `-dpi=f`                   | Force a DPI value instead of the embedded JPEG DPI      | Image metadata |
+| `-max_dpi=<value>`         | Cap the maximum DPI processed for multi-scale markers   | Auto           |
+| `-min_dpi=<value>`         | Floor the minimum DPI processed for multi-scale markers | Auto           |
+| `-background`              | Run detached in the background (macOS/Linux only)       | —              |
+| `--help`, `-h`, `-?`       | Print CLI usage information                             | —              |
+| `--threaded <n>`           | Run feature extraction using `n` threads                | `1`            |
+| `-nofset` / `-fset`        | Disable or force generation of the `.fset` file         | Enabled        |
+| `-nofset3` / `-fset3`      | Disable or force generation of the `.fset3` file        | Enabled        |
 
 ### Demo 🧪 (optional)
 
