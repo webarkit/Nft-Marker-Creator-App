@@ -23,7 +23,7 @@ int compressZip(char *src, int srclen) {
   deflate(&defstream, Z_FINISH);
   deflateEnd(&defstream);
 
-  printf("Compressed size is: %lu\n", defstream.total_out);
+  printf("Compressed size is: %zu\n", (size_t)defstream.total_out);
 
   std::ofstream outFile(zipname, std::ios::binary);
   outFile.write(b, defstream.total_out);
