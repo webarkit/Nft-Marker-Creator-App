@@ -413,7 +413,7 @@ int createNftDataSet(ARUint8 *imageIn, float dpiIn, int xsizeIn, int ysizeIn, in
         for (i = 0; i < imageSet->num; i++)
         {
 #ifdef HAVE_THREADING
-            threads.emplace_back([imageSet, featureSet, i, occSizeLocal, maxThreshLocal,
+            threads.emplace_back([imageSet, &featureSet, i, occSizeLocal, maxThreshLocal,
                                   minThreshLocal, sdThreshLocal]() {
                 ARLOGi("Start for %f dpi image.\n", imageSet->scale[i]->dpi);
 
