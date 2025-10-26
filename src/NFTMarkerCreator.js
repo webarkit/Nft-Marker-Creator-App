@@ -350,6 +350,8 @@ async function processImage(buf) {
       } else {
         await metadataChannels();
       }
+      // NOTE: The 'resolveWithObject: true' option for .toBuffer() requires sharp v0.33.0 or newer.
+      // If you downgrade sharp below v0.33.0, this will break.
       return image.raw().toBuffer({ resolveWithObject: true });
     })
     .then(({ data, info }) => {
