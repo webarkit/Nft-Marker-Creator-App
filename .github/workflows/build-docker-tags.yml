@@ -10,10 +10,21 @@ jobs:
       - id: vars
         shell: bash
         run: echo "tag=${GITHUB_REF#refs/*/}" >> $GITHUB_OUTPUT
+      - id: pre-step
+        shell: bash
+        run: |
+          version=""
+          if [ "${GITHUB_REF}" != "" ]; then
+            version="${GITHUB_REF#refs/tags/}"
+          fi
+          if [ -z "$version" ] && [ "${{ github.event.release.tag_name }}" != "" ]; then
+            version="${{ github.event.release.tag_name }}"
+          fi
+          echo "release-version=$version" >> "$GITHUB_OUTPUT"
       - name: Publish to Registry with version-tag
         uses: elgohr/Publish-Docker-Github-Action@v5
         with:
           name: webarkit/nft-marker-creator-app
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
-          tags: "${{ steps.vars.outputs.tag }}"
+          tags: latest,${{ steps.pre-step.outputs.release-version }}
