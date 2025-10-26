@@ -1,6 +1,12 @@
-build/*.bc
+build/*.o
+build/*.a
 emscripten/
 src/*.jpg
 src/*.png
 src/output/
 tools/
+test/
+.idea/
+.github/
+.vscode/
+output/
