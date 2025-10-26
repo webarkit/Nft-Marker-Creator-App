@@ -6,3 +6,4 @@ build/*.a
 demo/public/marker
 emscripten/build
 .idea
+.vscode
