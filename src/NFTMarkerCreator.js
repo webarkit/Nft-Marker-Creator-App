@@ -9,6 +9,7 @@ if (!process.env.NODE_OPTIONS) {
   return;
 }
 
+const { version } = require("../package.json");
 const path = require("path");
 const fs = require("fs");
 const sharp = require("sharp");
@@ -45,6 +46,7 @@ const imageData = {
 
 Module.onRuntimeInitialized = async function () {
   try {
+    console.log(`NFT Marker Creator version: ${version}`);
     console.log("arguments...: ", process.argv);
 
     const parsedArgs = parseCliArguments(process.argv);
