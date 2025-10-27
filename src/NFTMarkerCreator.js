@@ -13,6 +13,7 @@ const path = require("path");
 const fs = require("fs");
 const sharp = require("sharp");
 const { prompt } = require("enquirer");
+const { parseCliArguments } = require("./cli/parseArgs");
 const useThreading = process.argv.includes("--threaded");
 const Module = useThreading
   ? require("../build/NftMarkerCreator_wasm.thread.js")
@@ -28,16 +29,6 @@ let srcImage;
 let outputPath = "output/";
 
 let buffer;
-
-const foundInputPath = {
-  b: false,
-  i: -1,
-};
-
-const foundOutputPath = {
-  b: false,
-  i: -1,
-};
 
 let noConf = false;
 let withDemo = false;
@@ -56,30 +47,17 @@ Module.onRuntimeInitialized = async function () {
   try {
     console.log("arguments...: ", process.argv);
 
-    for (let j = 2; j < process.argv.length; j++) {
-      if (process.argv[j].indexOf("-i") !== -1 || process.argv[j].indexOf("-I") !== -1) {
-        foundInputPath.b = true;
-        foundInputPath.i = j + 1;
-        j++;
-      } else if (process.argv[j] === "-NoConf") {
-        noConf = true;
-      } else if (process.argv[j] === "-Demo") {
-        withDemo = true;
-      } else if (process.argv[j] === "-zft") {
-        isZFT = true;
-      } else if (process.argv[j] === "-onlyConfidence") {
-        onlyConfidence = true;
-      } else if (process.argv[j].indexOf("-o") !== -1 || process.argv[j].indexOf("-O") !== -1) {
-        foundOutputPath.b = true;
-        foundOutputPath.i = j + 1;
-        j++;
-      } else {
-        console.log(process.argv[j]);
-        params.push(process.argv[j]);
-      }
-    }
+    const parsedArgs = parseCliArguments(process.argv);
 
-    if (!foundInputPath.b) {
+    noConf = parsedArgs.noConf;
+    withDemo = parsedArgs.withDemo;
+    isZFT = parsedArgs.isZFT;
+    onlyConfidence = parsedArgs.onlyConfidence;
+
+    params.length = 0;
+    params.push(...parsedArgs.params);
+
+    if (parsedArgs.needsInputPrompt) {
       const response = await prompt({
         type: "input",
         name: "inputPath",
@@ -87,7 +65,7 @@ Module.onRuntimeInitialized = async function () {
       });
       srcImage = response.inputPath;
     } else {
-      srcImage = process.argv[foundInputPath.i];
+      srcImage = parsedArgs.inputPath;
     }
 
     if (!srcImage) {
@@ -95,19 +73,18 @@ Module.onRuntimeInitialized = async function () {
       process.exit(1);
     } else {
       console.log("checking file path...: ", srcImage);
-      if (!srcImage.startsWith("/")) {
+      if (!path.isAbsolute(srcImage)) {
         // Relative path
         srcImage = path.join(__dirname, srcImage);
       }
 
       console.log("image path is: ", srcImage);
-      // srcImage = path.join(__dirname, process.argv[foundInputPath.i]);
     }
 
-    if (foundOutputPath.b) {
-      outputPath = process.argv[foundOutputPath.i];
+    if (parsedArgs.outputProvided && parsedArgs.outputPath) {
+      outputPath = parsedArgs.outputPath;
 
-      if (!outputPath.startsWith("/")) {
+      if (!path.isAbsolute(outputPath)) {
         // relative path
         outputPath = path.join(__dirname, outputPath);
         // outputPath = '/' + outputPath;
