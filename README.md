@@ -22,6 +22,13 @@ cd src
 node NFTMarkerCreator.js -i PATH/TO/IMAGE --threaded <number_of_threads>
 ```
 
+Example:
+
+```bash
+cd src
+node NFTMarkerCreator.js -i pinball.jpg --threaded 8
+```
+
 Outputs land in `src/output`. See the sections below for setup, flags, and optional demo steps.
 
 ## Prerequisites ✅
@@ -52,11 +59,25 @@ Outputs land in `src/output`. See the sections below for setup, flags, and optio
  node NFTMarkerCreator.js -i PATH/TO/IMAGE
 ```
 
+Example:
+
+```bash
+cd src
+node NFTMarkerCreator.js -i pinball.jpg
+```
+
 The output files are saved in the `src/output` directory. Use `--threaded <count>` to speed up processing; start with the number of physical CPU cores and adjust based on thermals and available memory (e.g., laptops may peak at 4 threads, workstations can push higher):
 
 ```bash
 cd src
 node NFTMarkerCreator.js -i PATH/TO/IMAGE --threaded <number_of_threads>
+```
+
+Example:
+
+```bash
+cd src
+node NFTMarkerCreator.js -i pinball.jpg --threaded 4
 ```
 
 ### CLI flags ⚙️
