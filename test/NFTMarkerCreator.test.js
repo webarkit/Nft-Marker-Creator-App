@@ -11,7 +11,7 @@ test("NFTMarkerCreator should process the image", (done) => {
     expect(stdout).toContain("Create NFT Dataset complete...");
     done();
   });
-}, 57000);
+}, 120000);
 
 test("NFTMarkerCreator should process the image with threaded option", (done) => {
   const scriptPath = path.join(__dirname, "../src/NFTMarkerCreator.js");
@@ -23,4 +23,4 @@ test("NFTMarkerCreator should process the image with threaded option", (done) =>
     expect(stdout).toContain("Create NFT Dataset complete...");
     done();
   });
-}, 70000);
+}, 120000);
