@@ -35,7 +35,7 @@ Outputs land in `src/output`. See the sections below for setup, flags, and optio
 
 - Tested on Windows 11 (PowerShell 5.1) and Ubuntu 22.04 LTS (bash)
 - Git 2.39+
-- Node.js v20.17.0 (`.nvmrc`) and npm 10+
+- Node.js v22.21.1 (`.nvmrc`, Node 22 LTS; minimum supported `>=20.17.0`) and npm 10+
 - nvm 0.39+ (optional but recommended for managing Node versions)
 - Docker 24+ (required only for the containerised build flow)
 
@@ -46,7 +46,7 @@ Outputs land in `src/output`. See the sections below for setup, flags, and optio
 1. Clone this repository (or download the latest prebuilt `NFTMarkerCreator.js` and `build/` bundle from the [GitHub Releases page](https://github.com/webarkit/Nft-Marker-Creator-App/releases)).
 2. Install Node via nvm (recommended):
    - `nvm install`
-   - `nvm use 20`
+   - `nvm use 22`
 3. Install dependencies: `npm install`
 
 ### Run the app 🚀
@@ -158,13 +158,13 @@ Build emscripten files with docker:
 Linux/macOS:
 
 ```bash
-docker run --rm -v $(pwd):/src -u $(id -u):$(id -g) -e "EMSCRIPTEN=/emsdk/upstream/emscripten" emscripten/emsdk:3.1.69 npm run build-local
+docker run --rm -v $(pwd):/src -u $(id -u):$(id -g) -e "EMSCRIPTEN=/emsdk/upstream/emscripten" emscripten/emsdk:4.0.19 npm run build-local
 ```
 
 Windows (PowerShell):
 
 ```powershell
-docker run --rm -v "${PWD}:/src" -e "EMSCRIPTEN=/emsdk/upstream/emscripten" emscripten/emsdk:3.1.69 npm run build-local
+docker run --rm -v "${PWD}:/src" -e "EMSCRIPTEN=/emsdk/upstream/emscripten" emscripten/emsdk:4.0.19 npm run build-local
 ```
 
 or better create a docker container and run the build command inside it:
@@ -172,14 +172,14 @@ or better create a docker container and run the build command inside it:
 Linux/macOS:
 
 ```bash
-docker run -dit --name emscripten-nft-marker-creator-app -v $(pwd):/src emscripten/emsdk:3.1.69 bash
+docker run -dit --name emscripten-nft-marker-creator-app -v $(pwd):/src emscripten/emsdk:4.0.19 bash
 docker exec emscripten-nft-marker-creator-app npm run build-local
 ```
 
 Windows (PowerShell):
 
 ```powershell
-docker run -dit --name emscripten-nft-marker-creator-app -v "${PWD}:/src" emscripten/emsdk:3.1.69 bash
+docker run -dit --name emscripten-nft-marker-creator-app -v "${PWD}:/src" emscripten/emsdk:4.0.19 bash
 docker exec emscripten-nft-marker-creator-app npm run build-local
 ```
 
