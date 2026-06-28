@@ -31,9 +31,12 @@
     "demo": "cd demo && node demoServer.js",
     "format": "prettier --write \"**/*.{js,json,css,md}\"",
     "check-format": "prettier --check \"**/*.{js,json,css,md}\"",
-    "setup-docker": "docker run -dit --name emscripten-nft-marker-creator-app -v $(pwd):/src emscripten/emsdk:3.1.69 bash"
+    "setup-docker": "docker run -dit --name emscripten-nft-marker-creator-app -v $(pwd):/src emscripten/emsdk:4.0.19 bash"
   },
   "license": "LGPL-3.0",
+  "engines": {
+    "node": ">=20.17.0"
+  },
   "devDependencies": {
     "jest": "30.4.2",
     "prettier": "3.9.1"
