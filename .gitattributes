@@ -1,0 +1,14 @@
+# Normalize line endings: store text as LF and check it out as LF on all
+# platforms (including Windows), so `prettier --check` is consistent and CI
+# does not diverge from local working trees. Git auto-detects text vs binary.
+* text=auto eol=lf
+
+# Binary assets — never apply text/eol normalization.
+*.jpg  binary
+*.jpeg binary
+*.png  binary
+*.gif  binary
+*.ico  binary
+*.glb  binary
+*.dat  binary
+*.wasm binary
