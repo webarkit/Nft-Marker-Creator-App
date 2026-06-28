@@ -105,7 +105,9 @@ if (HAVE_NFT) {
 let DEFINES = " ";
 if (HAVE_NFT) DEFINES += " -D HAVE_NFT ";
 
-const TD = " -D HAVE_THREADING ";
+// Pre-warm a pthread worker pool sized to the host's core count so the bounded
+// thread pool in markerCreator.cpp does not have to spawn workers on demand.
+const TD = " -D HAVE_THREADING -s PTHREAD_POOL_SIZE=navigator.hardwareConcurrency ";
 
 let FLAGS = "" + OPTIMIZE_FLAGS;
 FLAGS += " -Wno-warn-absolute-paths ";
