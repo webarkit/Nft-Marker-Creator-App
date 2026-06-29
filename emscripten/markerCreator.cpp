@@ -56,12 +56,12 @@
 #include <ctime> // time(), localtime(), strftime()
 #include <chrono>
 #include <algorithm>
+#include <vector>
 
 #ifdef HAVE_THREADING
 #include <thread>
 #include <mutex>
 #include <atomic>
-#include <vector>
 #endif
 
 constexpr int KPM_SURF_FEATURE_DENSITY_L0 = 70;
@@ -212,6 +212,39 @@ static bool generateFeaturePointsForScale(AR2ImageSetT *imageSet, int scaleIndex
     return true;
 }
 
+// Extracts the KPM/FREAK reference data for a single image scale into `*out`.
+// kpmGenRefDataSet allocates a fresh data set per call with no shared state, so
+// this runs in parallel; the results are merged later in scale order. Returns
+// false on failure (never exits the process).
+static bool generateRefDataForScale(AR2ImageSetT *imageSet, int scaleIndex,
+                                    int featureDensity, int procMode,
+                                    KpmRefDataSet **out)
+{
+    const int maxFeatureNum = featureDensity * imageSet->scale[scaleIndex]->xsize
+                              * imageSet->scale[scaleIndex]->ysize / (480 * 360);
+    ARLOGi("(%d, %d) %f[dpi]\n", imageSet->scale[scaleIndex]->xsize,
+           imageSet->scale[scaleIndex]->ysize, imageSet->scale[scaleIndex]->dpi);
+
+    KpmRefDataSet *refData = NULL;
+    int ret = kpmGenRefDataSet(
+#if AR2_CAPABLE_ADAPTIVE_TEMPLATE
+        imageSet->scale[scaleIndex]->imgBWBlur[1],
+#else
+        imageSet->scale[scaleIndex]->imgBW,
+#endif
+        imageSet->scale[scaleIndex]->xsize,
+        imageSet->scale[scaleIndex]->ysize,
+        imageSet->scale[scaleIndex]->dpi,
+        procMode, KpmCompNull, maxFeatureNum, 1, scaleIndex, &refData);
+    if (ret < 0)
+    {
+        ARLOGe("kpmGenRefDataSet failed for scale %d.\n", scaleIndex);
+        return false;
+    }
+    *out = refData;
+    return true;
+}
+
 int createNftDataSet(ARUint8 *imageIn, float dpiIn, int xsizeIn, int ysizeIn, int ncIn, char *cmdStr)
 {
     AR2JpegImageT *jpegImage = NULL;
@@ -224,7 +257,6 @@ int createNftDataSet(ARUint8 *imageIn, float dpiIn, int xsizeIn, int ysizeIn, in
     int i;
     char *sep = NULL;
     time_t clock;
-    int maxFeatureNum;
     int err;
 
     dpi = dpiIn;
@@ -540,24 +572,60 @@ int createNftDataSet(ARUint8 *imageIn, float dpiIn, int xsizeIn, int ysizeIn, in
         ARLOGi("Generating FeatureSet3...\n");
         refDataSet = NULL;
         procMode = KpmProcFullSize;
+
+        // Phase 1: extract the per-scale reference data (the heavy FREAK step),
+        // optionally in parallel. Phase 2: merge in scale order. Merging by
+        // ascending scale index reproduces the serial merge order, keeping the
+        // saved .fset3 byte-identical.
+        std::vector<KpmRefDataSet *> perScale(imageSet->num, NULL);
+
+#ifdef HAVE_THREADING
+        {
+            const int workerCount = std::max(1, std::min({threadCount,
+                                                           (int)std::thread::hardware_concurrency(),
+                                                           imageSet->num}));
+            std::atomic<int> nextScale{0};
+            std::atomic<bool> failed{false};
+
+            auto worker = [&]()
+            {
+                int scaleIndex;
+                while (!failed.load(std::memory_order_relaxed) &&
+                       (scaleIndex = nextScale.fetch_add(1)) < imageSet->num)
+                {
+                    if (!generateRefDataForScale(imageSet, scaleIndex, featureDensity, procMode, &perScale[scaleIndex]))
+                        failed.store(true, std::memory_order_relaxed);
+                }
+            };
+
+            std::vector<std::thread> pool;
+            pool.reserve(workerCount);
+            for (int t = 0; t < workerCount; t++)
+                pool.emplace_back(worker);
+            for (auto &t : pool)
+                t.join();
+
+            if (failed.load())
+            {
+                ARLOGe("FeatureSet3 generation failed.\n");
+                EXIT(E_DATA_PROCESSING_ERROR);
+            }
+        }
+#else
         for (i = 0; i < imageSet->num; i++)
         {
-            // if( imageSet->scale[i]->dpi > 100.0f ) continue;
-
-            maxFeatureNum = featureDensity * imageSet->scale[i]->xsize * imageSet->scale[i]->ysize / (480 * 360);
-            ARLOGi("(%d, %d) %f[dpi]\n", imageSet->scale[i]->xsize, imageSet->scale[i]->ysize, imageSet->scale[i]->dpi);
-            if (kpmAddRefDataSet(
-#if AR2_CAPABLE_ADAPTIVE_TEMPLATE
-                    imageSet->scale[i]->imgBWBlur[1],
-#else
-                    imageSet->scale[i]->imgBW,
+            if (!generateRefDataForScale(imageSet, i, featureDensity, procMode, &perScale[i]))
+            {
+                EXIT(E_DATA_PROCESSING_ERROR);
+            }
+        }
 #endif
-                    imageSet->scale[i]->xsize,
-                    imageSet->scale[i]->ysize,
-                    imageSet->scale[i]->dpi,
-                    procMode, KpmCompNull, maxFeatureNum, 1, i, &refDataSet) < 0)
-            { // Page number set to 1 by default.
-                ARLOGe("Error at kpmAddRefDataSet.\n");
+
+        for (i = 0; i < imageSet->num; i++)
+        {
+            if (kpmMergeRefDataSet(&refDataSet, &perScale[i]) < 0)
+            {
+                ARLOGe("Error at kpmMergeRefDataSet.\n");
                 EXIT(E_DATA_PROCESSING_ERROR);
             }
         }
