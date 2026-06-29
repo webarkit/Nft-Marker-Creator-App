@@ -56,10 +56,12 @@
 #include <ctime> // time(), localtime(), strftime()
 #include <chrono>
 #include <algorithm>
+#include <vector>
 
 #ifdef HAVE_THREADING
 #include <thread>
 #include <mutex>
+#include <atomic>
 #endif
 
 constexpr int KPM_SURF_FEATURE_DENSITY_L0 = 70;
@@ -129,22 +131,132 @@ std::mutex m{};
 static void usage(const char *com);
 static int setDPI(void);
 
+// Parameters for feature-point selection on a single image scale.
+struct FeatureGenParams
+{
+    int occSize;
+    float maxThresh;
+    float minThresh;
+    float sdThresh;
+};
+
+// Nearest lower DPI among all scales; falls back to half this scale's DPI.
+static float computeMinDpi(AR2ImageSetT *imageSet, int scaleIndex)
+{
+    const float dpi = imageSet->scale[scaleIndex]->dpi;
+    float nearestLower = 0.0f;
+    for (int j = 0; j < imageSet->num; j++)
+    {
+        const float candidate = imageSet->scale[j]->dpi;
+        if (candidate < dpi && candidate > nearestLower)
+            nearestLower = candidate;
+    }
+    return (nearestLower == 0.0f) ? dpi * 0.5f : nearestLower;
+}
+
+// Blended upper DPI bound from the nearest higher scale; falls back to double.
+static float computeMaxDpi(AR2ImageSetT *imageSet, int scaleIndex)
+{
+    const float dpi = imageSet->scale[scaleIndex]->dpi;
+    float nearestHigher = 0.0f;
+    for (int j = 0; j < imageSet->num; j++)
+    {
+        const float candidate = imageSet->scale[j]->dpi;
+        if (candidate > dpi && (nearestHigher == 0.0f || candidate < nearestHigher))
+            nearestHigher = candidate;
+    }
+    return (nearestHigher == 0.0f) ? dpi * 2.0f : dpi * 0.8f + nearestHigher * 0.2f;
+}
+
+// Computes the feature points for a single image scale into `out`.
+// ar2GenFeatureMap is thread-safe (per-call allocations); ar2SelectFeature2
+// relies on function-static state, so it is serialized under the global mutex
+// when threading is enabled. Returns false on failure (never exits the process).
+static bool generateFeaturePointsForScale(AR2ImageSetT *imageSet, int scaleIndex,
+                                          const FeatureGenParams &params,
+                                          AR2FeaturePointsT &out)
+{
+    ARLOGi("Start for %f dpi image.\n", imageSet->scale[scaleIndex]->dpi);
+
+    AR2FeatureMapT *featureMap = ar2GenFeatureMap(
+        imageSet->scale[scaleIndex],
+        AR2_DEFAULT_TS1 * AR2_TEMP_SCALE, AR2_DEFAULT_TS2 * AR2_TEMP_SCALE,
+        AR2_DEFAULT_GEN_FEATURE_MAP_SEARCH_SIZE1, AR2_DEFAULT_GEN_FEATURE_MAP_SEARCH_SIZE2,
+        AR2_DEFAULT_MAX_SIM_THRESH2, AR2_DEFAULT_SD_THRESH2);
+    if (!featureMap)
+    {
+        ARLOGe("Feature map generation failed for scale %d.\n", scaleIndex);
+        return false;
+    }
+
+    int num = 0;
+    {
+#ifdef HAVE_THREADING
+        std::lock_guard<std::mutex> lock(m);
+#endif
+        out.coord = ar2SelectFeature2(
+            imageSet->scale[scaleIndex], featureMap,
+            AR2_DEFAULT_TS1 * AR2_TEMP_SCALE, AR2_DEFAULT_TS2 * AR2_TEMP_SCALE,
+            AR2_DEFAULT_GEN_FEATURE_MAP_SEARCH_SIZE2,
+            params.occSize, params.maxThresh, params.minThresh, params.sdThresh, &num);
+    }
+
+    if (!out.coord)
+        num = 0;
+    out.num = num;
+    out.scale = scaleIndex;
+    out.mindpi = computeMinDpi(imageSet, scaleIndex);
+    out.maxdpi = computeMaxDpi(imageSet, scaleIndex);
+
+    ar2FreeFeatureMap(featureMap);
+    return true;
+}
+
+// Extracts the KPM/FREAK reference data for a single image scale into `*out`.
+// kpmGenRefDataSet allocates a fresh data set per call with no shared state, so
+// this runs in parallel; the results are merged later in scale order. Returns
+// false on failure (never exits the process).
+static bool generateRefDataForScale(AR2ImageSetT *imageSet, int scaleIndex,
+                                    int featureDensity, int procMode,
+                                    KpmRefDataSet **out)
+{
+    const int maxFeatureNum = featureDensity * imageSet->scale[scaleIndex]->xsize
+                              * imageSet->scale[scaleIndex]->ysize / (480 * 360);
+    ARLOGi("(%d, %d) %f[dpi]\n", imageSet->scale[scaleIndex]->xsize,
+           imageSet->scale[scaleIndex]->ysize, imageSet->scale[scaleIndex]->dpi);
+
+    KpmRefDataSet *refData = NULL;
+    int ret = kpmGenRefDataSet(
+#if AR2_CAPABLE_ADAPTIVE_TEMPLATE
+        imageSet->scale[scaleIndex]->imgBWBlur[1],
+#else
+        imageSet->scale[scaleIndex]->imgBW,
+#endif
+        imageSet->scale[scaleIndex]->xsize,
+        imageSet->scale[scaleIndex]->ysize,
+        imageSet->scale[scaleIndex]->dpi,
+        procMode, KpmCompNull, maxFeatureNum, 1, scaleIndex, &refData);
+    if (ret < 0)
+    {
+        ARLOGe("kpmGenRefDataSet failed for scale %d.\n", scaleIndex);
+        return false;
+    }
+    *out = refData;
+    return true;
+}
+
 int createNftDataSet(ARUint8 *imageIn, float dpiIn, int xsizeIn, int ysizeIn, int ncIn, char *cmdStr)
 {
     AR2JpegImageT *jpegImage = NULL;
     ARUint8 *image = NULL;
     AR2ImageSetT *imageSet = NULL;
-    AR2FeatureMapT *featureMap = NULL;
     AR2FeatureSetT *featureSet = NULL;
     KpmRefDataSet *refDataSet = NULL;
-    float scale1, scale2;
     int procMode;
     char buf[1024];
-    int num;
-    int i, j;
+    int i;
     char *sep = NULL;
     time_t clock;
-    int maxFeatureNum;
     int err;
 
     dpi = dpiIn;
@@ -361,7 +473,6 @@ int createNftDataSet(ARUint8 *imageIn, float dpiIn, int xsizeIn, int ysizeIn, in
 #ifdef HAVE_THREADING
     ARLOGi("   (Threading enabled).\n");
     ARLOGi("   (threadCount from CLI: %d).\n", threadCount);
-    m.lock();
     int threadMaxCount = std::thread::hardware_concurrency();
     ARLOGi("   (Max thread count: %d).\n", threadMaxCount);
     if (threadCount < 1) threadCount = 1;
@@ -372,9 +483,6 @@ int createNftDataSet(ARUint8 *imageIn, float dpiIn, int xsizeIn, int ysizeIn, in
     ARLOGi("Running with %d threads\n", threadCount);
 #endif
     imageSet = ar2GenImageSet(image, xsize, ysize, nc, dpi, dpi_list, dpi_num);
-#ifdef HAVE_THREADING
-    m.unlock();
-#endif
     ar2FreeJpegImage(&jpegImage);
     if (imageSet == NULL)
     {
@@ -400,145 +508,50 @@ int createNftDataSet(ARUint8 *imageIn, float dpiIn, int xsizeIn, int ysizeIn, in
 
         ARLOGi("Generating FeatureList...\n");
 
+        const FeatureGenParams params{occ_size, max_thresh, min_thresh, sd_thresh};
+
 #ifdef HAVE_THREADING
-        std::vector<std::thread> threads;
-#endif
+        // Process each scale level as a task, shared across a bounded pool of
+        // workers sized to the requested thread count. ar2GenFeatureMap runs in
+        // parallel; ar2SelectFeature2 is serialized inside the worker function.
+        const int workerCount = std::max(1, std::min({threadCount,
+                                                       (int)std::thread::hardware_concurrency(),
+                                                       imageSet->num}));
+        ARLOGi("   (Using %d worker thread(s) for %d scale levels).\n", workerCount, imageSet->num);
 
-        const int occSizeLocal = occ_size;
-        const float maxThreshLocal = max_thresh;
-        const float minThreshLocal = min_thresh;
-        const float sdThreshLocal = sd_thresh;
-        const int threadCountLocal = threadCount;
+        std::atomic<int> nextScale{0};
+        std::atomic<bool> failed{false};
 
+        auto worker = [&]()
+        {
+            int scaleIndex;
+            while (!failed.load(std::memory_order_relaxed) &&
+                   (scaleIndex = nextScale.fetch_add(1)) < imageSet->num)
+            {
+                if (!generateFeaturePointsForScale(imageSet, scaleIndex, params, featureSet->list[scaleIndex]))
+                    failed.store(true, std::memory_order_relaxed);
+            }
+        };
+
+        std::vector<std::thread> pool;
+        pool.reserve(workerCount);
+        for (int t = 0; t < workerCount; t++)
+            pool.emplace_back(worker);
+        for (auto &t : pool)
+            t.join();
+
+        if (failed.load())
+        {
+            ARLOGe("FeatureList generation failed.\n");
+            EXIT(E_DATA_PROCESSING_ERROR);
+        }
+#else
         for (i = 0; i < imageSet->num; i++)
         {
-#ifdef HAVE_THREADING
-            threads.emplace_back([imageSet, &featureSet, i, occSizeLocal, maxThreshLocal,
-                                  minThreshLocal, sdThreshLocal]() {
-                ARLOGi("Start for %f dpi image.\n", imageSet->scale[i]->dpi);
-
-                AR2FeatureMapT *featureMap = ar2GenFeatureMap(
-                    imageSet->scale[i],
-                    AR2_DEFAULT_TS1 * AR2_TEMP_SCALE, AR2_DEFAULT_TS2 * AR2_TEMP_SCALE,
-                    AR2_DEFAULT_GEN_FEATURE_MAP_SEARCH_SIZE1, AR2_DEFAULT_GEN_FEATURE_MAP_SEARCH_SIZE2,
-                    AR2_DEFAULT_MAX_SIM_THRESH2, AR2_DEFAULT_SD_THRESH2);
-
-                if (!featureMap)
-                {
-                    ARLOGe("Error!!\n");
-                    EXIT(E_DATA_PROCESSING_ERROR);
-                }
-                ARLOGi("  Done.\n");
-
-                int localNum = 0;
-                {
-                    std::lock_guard<std::mutex> lock(m);
-                    featureSet->list[i].coord = ar2SelectFeature2(
-                        imageSet->scale[i], featureMap,
-                        AR2_DEFAULT_TS1 * AR2_TEMP_SCALE, AR2_DEFAULT_TS2 * AR2_TEMP_SCALE,
-                        AR2_DEFAULT_GEN_FEATURE_MAP_SEARCH_SIZE2,
-                        occSizeLocal, maxThreshLocal, minThreshLocal, sdThreshLocal, &localNum);
-                }
-
-                if (!featureSet->list[i].coord)
-                    localNum = 0;
-                featureSet->list[i].num = localNum;
-                featureSet->list[i].scale = i;
-
-                float minDpi = 0.0f;
-                for (int j = 0; j < imageSet->num; j++)
-                    if (imageSet->scale[j]->dpi < imageSet->scale[i]->dpi && imageSet->scale[j]->dpi > minDpi)
-                        minDpi = imageSet->scale[j]->dpi;
-                featureSet->list[i].mindpi = (minDpi == 0.0f) ? imageSet->scale[i]->dpi * 0.5f : minDpi;
-
-                float nextHigher = 0.0f;
-                for (int j = 0; j < imageSet->num; j++)
-                    if (imageSet->scale[j]->dpi > imageSet->scale[i]->dpi &&
-                        (nextHigher == 0.0f || imageSet->scale[j]->dpi < nextHigher))
-                        nextHigher = imageSet->scale[j]->dpi;
-                featureSet->list[i].maxdpi = (nextHigher == 0.0f)
-                                             ? imageSet->scale[i]->dpi * 2.0f
-                                             : imageSet->scale[i]->dpi * 0.8f + nextHigher * 0.2f;
-
-                ar2FreeFeatureMap(featureMap);
-            });
-#else
+            if (!generateFeaturePointsForScale(imageSet, i, params, featureSet->list[i]))
             {
-                ARLOGi("Start for %f dpi image.\n", imageSet->scale[i]->dpi);
-
-                featureMap = ar2GenFeatureMap(imageSet->scale[i],
-                                              AR2_DEFAULT_TS1 * AR2_TEMP_SCALE, AR2_DEFAULT_TS2 * AR2_TEMP_SCALE,
-                                              AR2_DEFAULT_GEN_FEATURE_MAP_SEARCH_SIZE1, AR2_DEFAULT_GEN_FEATURE_MAP_SEARCH_SIZE2,
-                                              AR2_DEFAULT_MAX_SIM_THRESH2, AR2_DEFAULT_SD_THRESH2);
-
-                if (featureMap == NULL)
-                {
-                    ARLOGe("Error!!\n");
-                    EXIT(E_DATA_PROCESSING_ERROR);
-                }
-                ARLOGi("  Done.\n");
-
-#ifdef HAVE_THREADING
-                m.lock();
-#endif
-                featureSet->list[i].coord = ar2SelectFeature2(imageSet->scale[i], featureMap,
-                                                              AR2_DEFAULT_TS1 * AR2_TEMP_SCALE, AR2_DEFAULT_TS2 * AR2_TEMP_SCALE, AR2_DEFAULT_GEN_FEATURE_MAP_SEARCH_SIZE2,
-                                                              occ_size,
-                                                              max_thresh, min_thresh, sd_thresh, &num);
-#ifdef HAVE_THREADING
-                m.unlock();
-#endif
-                if (featureSet->list[i].coord == NULL)
-                    num = 0;
-                featureSet->list[i].num = num;
-                featureSet->list[i].scale = i;
-
-                scale1 = 0.0f;
-                for (j = 0; j < imageSet->num; j++)
-                {
-                    if (imageSet->scale[j]->dpi < imageSet->scale[i]->dpi)
-                    {
-                        if (imageSet->scale[j]->dpi > scale1)
-                            scale1 = imageSet->scale[j]->dpi;
-                    }
-                }
-                if (scale1 == 0.0f)
-                {
-                    featureSet->list[i].mindpi = imageSet->scale[i]->dpi * 0.5f;
-                }
-                else
-                {
-                    featureSet->list[i].mindpi = scale1;
-                }
-
-                scale1 = 0.0f;
-                for (j = 0; j < imageSet->num; j++)
-                {
-                    if (imageSet->scale[j]->dpi > imageSet->scale[i]->dpi)
-                    {
-                        if (scale1 == 0.0f || imageSet->scale[j]->dpi < scale1)
-                            scale1 = imageSet->scale[j]->dpi;
-                    }
-                }
-                if (scale1 == 0.0f)
-                {
-                    featureSet->list[i].maxdpi = imageSet->scale[i]->dpi * 2.0f;
-                }
-                else
-                {
-                    scale2 = imageSet->scale[i]->dpi;
-                    featureSet->list[i].maxdpi = scale2 * 0.8f + scale1 * 0.2f;
-                }
-
-                ar2FreeFeatureMap(featureMap);
+                EXIT(E_DATA_PROCESSING_ERROR);
             }
-#endif
-        }
-
-#ifdef HAVE_THREADING
-        for (auto &t : threads)
-        {
-            t.join();
         }
 #endif
 
@@ -559,24 +572,60 @@ int createNftDataSet(ARUint8 *imageIn, float dpiIn, int xsizeIn, int ysizeIn, in
         ARLOGi("Generating FeatureSet3...\n");
         refDataSet = NULL;
         procMode = KpmProcFullSize;
+
+        // Phase 1: extract the per-scale reference data (the heavy FREAK step),
+        // optionally in parallel. Phase 2: merge in scale order. Merging by
+        // ascending scale index reproduces the serial merge order, keeping the
+        // saved .fset3 byte-identical.
+        std::vector<KpmRefDataSet *> perScale(imageSet->num, NULL);
+
+#ifdef HAVE_THREADING
+        {
+            const int workerCount = std::max(1, std::min({threadCount,
+                                                           (int)std::thread::hardware_concurrency(),
+                                                           imageSet->num}));
+            std::atomic<int> nextScale{0};
+            std::atomic<bool> failed{false};
+
+            auto worker = [&]()
+            {
+                int scaleIndex;
+                while (!failed.load(std::memory_order_relaxed) &&
+                       (scaleIndex = nextScale.fetch_add(1)) < imageSet->num)
+                {
+                    if (!generateRefDataForScale(imageSet, scaleIndex, featureDensity, procMode, &perScale[scaleIndex]))
+                        failed.store(true, std::memory_order_relaxed);
+                }
+            };
+
+            std::vector<std::thread> pool;
+            pool.reserve(workerCount);
+            for (int t = 0; t < workerCount; t++)
+                pool.emplace_back(worker);
+            for (auto &t : pool)
+                t.join();
+
+            if (failed.load())
+            {
+                ARLOGe("FeatureSet3 generation failed.\n");
+                EXIT(E_DATA_PROCESSING_ERROR);
+            }
+        }
+#else
         for (i = 0; i < imageSet->num; i++)
         {
-            // if( imageSet->scale[i]->dpi > 100.0f ) continue;
-
-            maxFeatureNum = featureDensity * imageSet->scale[i]->xsize * imageSet->scale[i]->ysize / (480 * 360);
-            ARLOGi("(%d, %d) %f[dpi]\n", imageSet->scale[i]->xsize, imageSet->scale[i]->ysize, imageSet->scale[i]->dpi);
-            if (kpmAddRefDataSet(
-#if AR2_CAPABLE_ADAPTIVE_TEMPLATE
-                    imageSet->scale[i]->imgBWBlur[1],
-#else
-                    imageSet->scale[i]->imgBW,
+            if (!generateRefDataForScale(imageSet, i, featureDensity, procMode, &perScale[i]))
+            {
+                EXIT(E_DATA_PROCESSING_ERROR);
+            }
+        }
 #endif
-                    imageSet->scale[i]->xsize,
-                    imageSet->scale[i]->ysize,
-                    imageSet->scale[i]->dpi,
-                    procMode, KpmCompNull, maxFeatureNum, 1, i, &refDataSet) < 0)
-            { // Page number set to 1 by default.
-                ARLOGe("Error at kpmAddRefDataSet.\n");
+
+        for (i = 0; i < imageSet->num; i++)
+        {
+            if (kpmMergeRefDataSet(&refDataSet, &perScale[i]) < 0)
+            {
+                ARLOGe("Error at kpmMergeRefDataSet.\n");
                 EXIT(E_DATA_PROCESSING_ERROR);
             }
         }
