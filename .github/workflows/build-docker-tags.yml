@@ -1,7 +1,13 @@
 name: Publish to DockerHub with a verstion-tag
+# Trigger on the tag push (the same event that drives build.yml), not on
+# `release: published`. A release created by build.yml uses the default
+# GITHUB_TOKEN, and GitHub does not fire `release` events for token-created
+# releases, so this workflow never ran (issue #10). The tag push is a normal
+# event we control, so it triggers reliably.
 on:
-  release:
-    types: [ published ]
+  push:
+    tags:
+      - '**'
 jobs:
   update:
     runs-on: ubuntu-latest
