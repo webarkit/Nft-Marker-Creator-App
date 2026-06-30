@@ -136,13 +136,13 @@ Then inside the folder you want to run the docker image:
 Linux/macOS:
 
 ```bash
-docker run -dit --name nft-app -v "$(pwd):/src" webarkit/nft-marker-creator-app:0.2.5 bash
+docker run -dit --name nft-app -v "$(pwd):/src" webarkit/nft-marker-creator-app:0.4.0 bash
 ```
 
 Windows (PowerShell):
 
 ```powershell
-docker run -dit --name nft-app -v "${PWD}:/src" webarkit/nft-marker-creator-app:0.2.5 bash
+docker run -dit --name nft-app -v "${PWD}:/src" webarkit/nft-marker-creator-app:0.4.0 bash
 ```
 
 With the docker container generate the NFT marker:
