@@ -42,7 +42,6 @@
  *
  */
 
-#include <emscripten/emscripten.h>
 #include <cstdio>
 #include <cstring>
 #include "AR/ar.h"
@@ -769,4 +768,9 @@ static void usage(const char *com)
     EXIT(E_BAD_PARAMETER);
 }
 
+// The Emscripten/WASM entry point is compiled into this translation unit only
+// for the emcc build. Native builds (e.g. the pybind11 Python package) compile
+// markerCreator.cpp as a pure-C++ core and provide their own binding.
+#ifdef __EMSCRIPTEN__
 #include "markerCreator_bindings.cpp"
+#endif
