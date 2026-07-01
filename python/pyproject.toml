@@ -1,0 +1,17 @@
+[build-system]
+requires = ["scikit-build-core>=0.8", "pybind11>=2.11"]
+build-backend = "scikit_build_core.build"
+
+[project]
+name = "nft-marker-creator"
+version = "0.1.0"
+description = "Native NFT marker creator (WebARKitLib) via pybind11"
+readme = "DESIGN.md"
+requires-python = ">=3.8"
+license = { text = "LGPL-3.0" }
+dependencies = ["pillow"]
+
+[tool.scikit-build]
+wheel.packages = ["nft_marker_creator"]
+minimum-version = "0.8"
+cmake.version = ">=3.18"
