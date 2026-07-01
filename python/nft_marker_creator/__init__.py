@@ -23,6 +23,11 @@ def create(image, output_dir: str = ".", dpi: float | None = None,
     ``threads`` > 1 runs the bounded worker pool (real OS threads). Output is
     byte-identical regardless of thread count. Returns the written file paths
     (``<name>.iset/.fset/.fset3``).
+
+    Raises ``RuntimeError`` if generation fails (e.g. a processing error) — the
+    native core reports errors as exceptions rather than terminating the process.
+    Each call resets the core's state, so calls are independent and recover from
+    a prior failure.
     """
     img = Image.open(image).convert("RGB")
     xsize, ysize = img.size
