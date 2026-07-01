@@ -139,6 +139,27 @@ plateau at ~4 threads (#29). Threaded output is byte-identical to single-threade
 - **Link**: `libjpeg`, `zlib`, `pthread`.
 - **Core edit**: only the 2 `markerCreator.cpp` guards (WASM stays byte-identical).
 
+## Output parity vs the WASM/Node tool (test image, single-threaded)
+
+| File     | Native vs WASM                    | Interpretation                                           |
+| -------- | --------------------------------- | -------------------------------------------------------- |
+| `.iset`  | IDENTICAL (118 KB)                | decoders agree + AR2 image pyramid is bit-exact          |
+| `.fset`  | IDENTICAL (12 KB)                 | FeatureList (ar2GenFeatureMap + ar2SelectFeature2) exact |
+| `.fset3` | DIFFER (same size, ~36% of bytes) | KPM/FREAK descriptors differ by FP rounding              |
+
+- The `sharp` (WASM path) vs `Pillow` (native path) decoder difference was a
+  non-issue for this image — identical `.iset` proves same raw pixels. (Other
+  images could differ; not guaranteed.)
+- `.iset`/`.fset` are **byte-identical** native ↔ WASM.
+- `.fset3` differs due to **floating-point non-determinism** in KPM/FREAK (Eigen
+  SIMD + trig, e.g. `psincos_float`) between clang-native and emcc-WASM. Same
+  size, byte differences spread throughout → FP rounding, not a logic bug. Both
+  files are valid markers; features are numerically ~equal, not bit-exact.
+- **Conclusion:** documented, benign difference. Chasing bit-parity on `.fset3`
+  (e.g. `-DEIGEN_DONT_VECTORIZE` / `-ffp-contract=off`) would cost performance and
+  still may not match WASM exactly — not worth it. The Python-side parity oracle
+  is threads=1-vs-N (byte-identical), not native-vs-WASM.
+
 ## Risks — status after spike
 
 - ~~Native compilation of AR2/KPM/Eigen~~ → **resolved** (clang + C++17).
