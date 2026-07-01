@@ -165,11 +165,15 @@ plateau at ~4 threads (#29). Threaded output is byte-identical to single-threade
 - ~~Native compilation of AR2/KPM/Eigen~~ → **resolved** (clang + C++17).
 - ~~libjpeg/zlib native linkage~~ → **resolved** (`JPEG::JPEG` / `ZLIB::ZLIB`).
 - `markerCompress.cpp` / `.zft` — still deferred (post-MVP; hardcoded temp path).
-- **Output parity** — still to confirm: does native output match the WASM tool
-  byte-for-byte? (MVP test task.)
-- **`exit()` on error** — the core calls `exit()` on failures, which would kill the
-  host Python process. Acceptable for the spike; the MVP should surface errors as
-  exceptions (relates to the core-extraction refactor #31).
+- ~~Output parity~~ → **done** (see the Output parity section: `.iset`/`.fset`
+  identical, `.fset3` differs by FP rounding — benign).
+- ~~`exit()` on error~~ → **resolved**: native `EXIT` throws (→ Python
+  `RuntimeError`) instead of calling `exit()`, so failures no longer kill the
+  host process. Plus each call **resets the mutable module globals**, so calls
+  are independent and recover after a prior failure (verified: happy → error →
+  happy-again succeeds, output byte-identical to a clean run). WASM keeps
+  `exit()` and stays byte-identical (jest 8/8). The error path still leaks the
+  C-style allocations (no RAII unwind) — full cleanup tracked in #31.
 
 ## Open follow-ups
 

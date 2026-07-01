@@ -56,6 +56,8 @@
 #include <chrono>
 #include <algorithm>
 #include <vector>
+#include <stdexcept>
+#include <string>
 
 #ifdef HAVE_THREADING
 #include <thread>
@@ -117,11 +119,25 @@ static int background = 0;
 static char logfile[MC_MAX_PATH] = "";
 static char exitcodefile[MC_MAX_PATH] = "";
 static char exitcode = -1;
+#ifdef __EMSCRIPTEN__
 #define EXIT(c)       \
     {                 \
         exitcode = c; \
         exit(c);      \
     }
+#else
+// Native builds (e.g. the pybind11 Python package) must not terminate the host
+// process on error. Throw instead; the binding surfaces it as a Python
+// exception. NOTE: this unwinds without freeing the C-style allocations in
+// createNftDataSet (a small leak on the error path) — full RAII cleanup is
+// tracked in the core-extraction refactor (#31).
+#define EXIT(c)                                                        \
+    {                                                                  \
+        exitcode = c;                                                  \
+        throw std::runtime_error("NFT marker creation failed (code " + \
+                                 std::to_string(c) + ")");             \
+    }
+#endif
 
 #ifdef HAVE_THREADING
 std::mutex m{};
@@ -257,6 +273,28 @@ int createNftDataSet(ARUint8 *imageIn, float dpiIn, int xsizeIn, int ysizeIn, in
     char *sep = NULL;
     time_t clock;
     int err;
+
+    // Reset mutable module-level state so each call is independent. The WASM CLI
+    // runs once per process, but the native (Python) package calls this many
+    // times — without this, stale globals from a previous or failed call (e.g.
+    // dpiMin/dpiMax computed for a different image) corrupt the next one. Proper
+    // encapsulation is tracked in #31.
+    genfset = 1;
+    genfset3 = 1;
+    dpiMin = -1.0f;
+    dpiMax = -1.0f;
+    if (dpi_list) { free(dpi_list); dpi_list = NULL; }
+    dpi_num = 0;
+    sd_thresh = -1.0f;
+    min_thresh = -1.0f;
+    max_thresh = -1.0f;
+    featureDensity = -1;
+    occ_size = -1;
+    tracking_extraction_level = -1;
+    initialization_extraction_level = -1;
+    threadCount = 1;
+    background = 0;
+    exitcode = -1;
 
     dpi = dpiIn;
     xsize = xsizeIn;
