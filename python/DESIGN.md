@@ -21,6 +21,7 @@ Status: **design / pre-implementation**. Branch: `feat/python-package`.
 `markerCreator.cpp` already contains the runtime-agnostic core `createNftDataSet`
 (it writes output via `fopen`-based `ar2WriteImageSet` / `ar2SaveFeatureSet` /
 `kpmSaveRefDataSet` — portable). The only Emscripten coupling is:
+
 1. `#include <emscripten/emscripten.h>` (line 45) — **vestigial / unused**.
 2. `#include "markerCreator_bindings.cpp"` at the bottom — the WASM entry point.
 
@@ -29,26 +30,28 @@ Emscripten-specific, and it lives in a **separate** file.
 
 ## Decision log
 
-| Decision | Choice | Alternatives | Why |
-|---|---|---|---|
-| Location | Same repo, `python/` subdir | Separate repo | Shares C++ sources + submodules; single maintenance point |
-| MVP scope | Minimal (image → iset/fset/fset3, single-thread) | Full-featured first | De-risk + value fast; YAGNI |
-| Build system | scikit-build-core + CMake | setuptools + pybind11 | Best fit for compiling the AR2/KPM/Eigen C/C++ tree + wheels |
-| Core/binding split (MVP) | Minimal `#ifdef __EMSCRIPTEN__` guard in `markerCreator.cpp` | Full core extraction now | Lowest risk to the working WASM build; keep it byte-identical |
-| Core extraction | Deferred to a follow-up issue (`markerCreatorCore.{h,cpp}`) | Do it now | Cleaner SRP, but a bigger refactor; do after the native path is proven |
-| Dev/build env | Linux (WSL Ubuntu-24.04 or Docker) | Native Windows/MSVC | Matches the project's Linux build workflow; native gcc + libjpeg/zlib |
-| Release wheels | `cibuildwheel` in GitHub Actions (Linux/macOS/Windows) | Local builds | CI runners supply all 3 OSes; no Mac/Windows toolchain needed locally |
-| Distribution | **PyPI now** | Docker now | Standard Python channel first |
-| Docker image | **Deferred / undecided** | A=PyPI-only, B=extend Node image, C=slim python image | Decide later; leaning C (separate slim image) but not committed |
+| Decision                 | Choice                                                       | Alternatives                                          | Why                                                                    |
+| ------------------------ | ------------------------------------------------------------ | ----------------------------------------------------- | ---------------------------------------------------------------------- |
+| Location                 | Same repo, `python/` subdir                                  | Separate repo                                         | Shares C++ sources + submodules; single maintenance point              |
+| MVP scope                | Minimal (image → iset/fset/fset3, single-thread)             | Full-featured first                                   | De-risk + value fast; YAGNI                                            |
+| Build system             | scikit-build-core + CMake                                    | setuptools + pybind11                                 | Best fit for compiling the AR2/KPM/Eigen C/C++ tree + wheels           |
+| Core/binding split (MVP) | Minimal `#ifdef __EMSCRIPTEN__` guard in `markerCreator.cpp` | Full core extraction now                              | Lowest risk to the working WASM build; keep it byte-identical          |
+| Core extraction          | Deferred to a follow-up issue (`markerCreatorCore.{h,cpp}`)  | Do it now                                             | Cleaner SRP, but a bigger refactor; do after the native path is proven |
+| Dev/build env            | Linux (WSL Ubuntu-24.04 or Docker)                           | Native Windows/MSVC                                   | Matches the project's Linux build workflow; native gcc + libjpeg/zlib  |
+| Release wheels           | `cibuildwheel` in GitHub Actions (Linux/macOS/Windows)       | Local builds                                          | CI runners supply all 3 OSes; no Mac/Windows toolchain needed locally  |
+| Distribution             | **PyPI now**                                                 | Docker now                                            | Standard Python channel first                                          |
+| Docker image             | **Deferred / undecided**                                     | A=PyPI-only, B=extend Node image, C=slim python image | Decide later; leaning C (separate slim image) but not committed        |
 
 ## Architecture (MVP)
 
 **Existing code changed — only `markerCreator.cpp`, 2 minimal edits:**
+
 1. Remove the dead `#include <emscripten/emscripten.h>` (unused → cleanup).
 2. Guard the bottom binding include with `#ifdef __EMSCRIPTEN__ … #endif`.
    → WASM build stays **byte-identical** (emcc defines `__EMSCRIPTEN__`).
 
 **New files (all under `python/`):**
+
 - `python/src/markerCreator_py.cpp` — pybind11 binding (parallel to
   `markerCreator_bindings.cpp`); `extern` declares + calls `createNftDataSet`.
 - `python/CMakeLists.txt` — compiles the same source list as `tools/makem.js`
@@ -60,6 +63,7 @@ Emscripten-specific, and it lives in a **separate** file.
   Pillow → raw bytes + (xsize, ysize, nc, dpi) → call the extension.
 
 ### MVP Python API (proposed)
+
 ```python
 import nft_marker_creator as nmc
 
@@ -67,10 +71,12 @@ paths = nmc.create("pinball.jpg", output_dir="output")
 # decodes image (Pillow), calls createNftDataSet, returns the written file paths
 # kwargs map to the existing cmdStr flags, e.g. dpi=, level=, leveli=
 ```
+
 The binding builds the existing `cmdStr` (`"-level=2 -leveli=1 ..."`) from kwargs
 so it reuses the core's argument parsing unchanged.
 
 ### Two faces: library + standalone CLI
+
 The same package ships both a **library** (`import nft_marker_creator`) and a
 **standalone CLI** via a `[project.scripts]` entry point in `pyproject.toml`,
 e.g. `nft-marker-creator -i pinball.jpg` → a small `argparse` wrapper calling the
@@ -97,6 +103,7 @@ compilation reveals blockers (missing deps, emcc-specific assumptions) → repor
 and adjust before investing further.**
 
 ## Testing strategy
+
 - Spike: produce a marker from `pinball.jpg`, compare to the Node CLI output.
 - MVP: a pytest that runs `nmc.create()` on the test image and asserts the three
   files exist (and, ideally, match a reference / the Node output).
@@ -110,28 +117,30 @@ single-threaded, vs ~51.9s for the WASM tool — the no-WASM-overhead win is rea
 
 **Native vs WASM (fair: same container, Node 22, back-to-back, test image):**
 
-| Threads | WASM | Native | Native advantage |
-|--------:|-----:|-------:|:---:|
-| 1 | 66.2s | 47.9s | 1.38× |
-| 4 | 25.8s | 17.4s | 1.48× |
-| 8 | 24.5s | 16.9s | 1.45× |
+| Threads |  WASM | Native | Native advantage |
+| ------: | ----: | -----: | :--------------: |
+|       1 | 66.2s |  47.9s |      1.38×       |
+|       4 | 25.8s |  17.4s |      1.48×       |
+|       8 | 24.5s |  16.9s |      1.45×       |
 
 Native is ~1.4× faster than WASM at every thread count; both hit the memory-bound
 plateau at ~4 threads (#29). Threaded output is byte-identical to single-threaded
 (md5-verified across `.iset/.fset/.fset3`).
 
 **Proven build recipe:**
+
 - **clang** (not GCC): GCC 12 fails on the vendored Eigen's `isfinite_impl`.
 - **C++17** (not the WASM build's C++11): Eigen needs `std::integer_sequence`.
 - **Source list** = AR2 + KPM **plus** the full AR core the ARToolKit5 build links
   (`Makefile.in` recurses AR, ARICP, AR2, KPM, ARUtil): AR matrix (`m*.c`,`v*.c`)
-  + param (`param*.c` minus `paramGL.c`) + `arUtil.c` + `arPattLoad.c` + `ARICP/icp*.c`
-  + ARUtil (`log`, `file_utils`, `thread_sub`, `unzip`, `ioapi`, `crypt`, `zip`).
-  Native linking is strict; emcc tolerated the never-called tracker symbols.
+  - param (`param*.c` minus `paramGL.c`) + `arUtil.c` + `arPattLoad.c` + `ARICP/icp*.c`
+  - ARUtil (`log`, `file_utils`, `thread_sub`, `unzip`, `ioapi`, `crypt`, `zip`).
+    Native linking is strict; emcc tolerated the never-called tracker symbols.
 - **Link**: `libjpeg`, `zlib`, `pthread`.
 - **Core edit**: only the 2 `markerCreator.cpp` guards (WASM stays byte-identical).
 
 ## Risks — status after spike
+
 - ~~Native compilation of AR2/KPM/Eigen~~ → **resolved** (clang + C++17).
 - ~~libjpeg/zlib native linkage~~ → **resolved** (`JPEG::JPEG` / `ZLIB::ZLIB`).
 - `markerCompress.cpp` / `.zft` — still deferred (post-MVP; hardcoded temp path).
@@ -142,6 +151,7 @@ plateau at ~4 threads (#29). Threaded output is byte-identical to single-threade
   exceptions (relates to the core-extraction refactor #31).
 
 ## Open follow-ups
+
 - Core extraction into `markerCreatorCore.{h,cpp}` (issue #31).
 - **Standalone CLI** entry point (`[project.scripts]`) — immediate follow-up to
   the MVP library; low cost, mirrors the Node CLI.
