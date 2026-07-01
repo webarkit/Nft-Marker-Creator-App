@@ -11,6 +11,9 @@ requires-python = ">=3.8"
 license = { text = "LGPL-3.0" }
 dependencies = ["pillow"]
 
+[project.scripts]
+nft-marker-creator = "nft_marker_creator.cli:main"
+
 [tool.scikit-build]
 wheel.packages = ["nft_marker_creator"]
 minimum-version = "0.8"

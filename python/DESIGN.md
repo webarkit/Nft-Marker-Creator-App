@@ -178,8 +178,10 @@ plateau at ~4 threads (#29). Threaded output is byte-identical to single-threade
 ## Open follow-ups
 
 - Core extraction into `markerCreatorCore.{h,cpp}` (issue #31).
-- **Standalone CLI** entry point (`[project.scripts]`) — immediate follow-up to
-  the MVP library; low cost, mirrors the Node CLI.
+- ~~Standalone CLI entry point~~ → **done**: `nft-marker-creator` command
+  (`[project.scripts]` → `cli:main`) + `python -m nft_marker_creator`. argparse
+  wrapper over `create()` (`-i/-o/--dpi/--level/--leveli/--threads`); prints
+  output paths, exit 1 + message on error. Validated in-container.
 - Heavier standalone app: frozen binary (PyInstaller) or GUI — later, deliberate.
 - Docker image for the Python package (option C leaning), decision deferred.
 - Post-MVP: threading, `.zft`, NumPy input, ported confidence/entropy scoring,
