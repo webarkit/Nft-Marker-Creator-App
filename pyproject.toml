@@ -1,0 +1,38 @@
+[build-system]
+requires = ["scikit-build-core>=0.8", "pybind11>=2.11"]
+build-backend = "scikit_build_core.build"
+
+[project]
+name = "nft-marker-creator"
+version = "0.1.0"
+description = "Native NFT marker creator (WebARKitLib) via pybind11"
+readme = "python/README.md"
+requires-python = ">=3.8"
+license = { text = "LGPL-3.0" }
+dependencies = ["pillow"]
+
+[project.scripts]
+nft-marker-creator = "nft_marker_creator.cli:main"
+
+[tool.scikit-build]
+wheel.packages = ["python/nft_marker_creator"]
+minimum-version = "0.8"
+cmake.version = ">=3.18"
+
+# Keep the sdist small and buildable: exclude the Node app, demo, WASM build
+# artifacts, tests, and the big vendored submodules (WebARKitLib is fetched via
+# FetchContent at build time; native uses system zlib). Only markerCreator.cpp
+# from emscripten/ is needed alongside python/ + CMakeLists.
+[tool.scikit-build.sdist]
+# Anchored (/-prefixed) so patterns match only at the repo root and don't catch
+# python/src (which holds the pybind11 binding). WebARKitLib is fetched at build
+# time (FetchContent), so it's excluded to keep the sdist small.
+exclude = [
+  "/src", "/demo", "/docker", "/test", "/tools", "/build", "/node_modules",
+  "/.github", "/emscripten/WebARKitLib", "/emscripten/zlib", "/emscripten/build",
+  "/emscripten/.idea", "/emscripten/markerCreator_bindings.cpp",
+  "/README.md", "/package.json", "/package-lock.json", "/jest.config.js",
+  "/Dockerfile", "/.dockerignore", "/.npmignore", "/.nvmrc", "/.prettierrc",
+  "/.prettierignore", "/.gitattributes", "/.gitignore", "/.gitmodules",
+  "*.png", "*.jpg", "*.jpeg", "*.glb", "*.dat",
+]
