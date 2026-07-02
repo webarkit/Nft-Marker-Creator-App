@@ -22,12 +22,15 @@ set(WSRC ${WAK}/lib/SRC)
 # emscripten binding (we provide a pybind11 one) and markerCompress (.zft only).
 set(AR_SOURCES
   ${WSRC}/ARUtil/log.c
-  ${WSRC}/ARUtil/file_utils.c
   # thread_sub.c defines threadEndSignal etc. referenced by AR2/tracking2d.c.
-  # makem.js omits it (emscripten links leniently); native linking is strict.
   ${WSRC}/ARUtil/thread_sub.c
-  # unzip.c/ioapi.c (minizip) provide unz* symbols referenced by file_utils.c;
-  # crypt.c/zip.c provide the crypt + zip* writer symbols they pull in.
+  # file_utils.c defines cat() (referenced by AR/arPattLoad.c, which the AR2
+  # tracker files pull in). It in turn references the minizip chain (unz*/zip*/
+  # crypt), so those must be compiled too. ioapi.c hardcodes glibc
+  # fopen64/fseeko64/ftello64 -> needs _LARGEFILE64_SOURCE (set below) on
+  # manylinux. (macOS/Windows will need a leaner source set; tracked as a
+  # follow-up. Linux is the first wheel target.)
+  ${WSRC}/ARUtil/file_utils.c
   ${WSRC}/ARUtil/unzip.c
   ${WSRC}/ARUtil/ioapi.c
   ${WSRC}/ARUtil/crypt.c
@@ -86,7 +89,11 @@ target_include_directories(_core PRIVATE
 # HAVE_THREADING enables the bounded worker pool in markerCreator.cpp. Native
 # threads need no PTHREAD_POOL_SIZE / COOP-COEP dance (unlike the WASM build);
 # pthread is already linked below. The `threads=` Python arg controls the count.
-target_compile_definitions(_core PRIVATE HAVE_NFT HAVE_THREADING)
+# _LARGEFILE64_SOURCE/_FILE_OFFSET_BITS: minizip ioapi.c uses fopen64/fseeko64/
+# ftello64, which glibc only declares with these (needed on manylinux; harmless
+# on newer distros that declare them by default).
+target_compile_definitions(_core PRIVATE HAVE_NFT HAVE_THREADING
+  _LARGEFILE64_SOURCE _FILE_OFFSET_BITS=64)
 target_link_libraries(_core PRIVATE JPEG::JPEG ZLIB::ZLIB Threads::Threads)
 
 install(TARGETS _core DESTINATION nft_marker_creator)
