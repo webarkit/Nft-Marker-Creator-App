@@ -8,6 +8,12 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
+# The vendored ARToolKit code crashes at import under clang-21's default Release
+# flags (-O3 -DNDEBUG). Set the Release flags directly (unambiguous, unlike
+# appending via target options) to -O2; keep asserts (no NDEBUG).
+set(CMAKE_C_FLAGS_RELEASE "-O2")
+set(CMAKE_CXX_FLAGS_RELEASE "-O2")
+
 find_package(pybind11 CONFIG REQUIRED)
 find_package(JPEG REQUIRED)
 find_package(ZLIB REQUIRED)
@@ -105,6 +111,7 @@ target_include_directories(_core PRIVATE
 # ftello64, which glibc only declares with these (needed on manylinux).
 target_compile_definitions(_core PRIVATE HAVE_NFT HAVE_THREADING
   _LARGEFILE64_SOURCE _FILE_OFFSET_BITS=64)
+target_compile_options(_core PRIVATE -fno-strict-aliasing -fno-strict-overflow)
 target_link_libraries(_core PRIVATE JPEG::JPEG ZLIB::ZLIB Threads::Threads)
 
 install(TARGETS _core DESTINATION nft_marker_creator)
