@@ -19,6 +19,23 @@ wheel.packages = ["python/nft_marker_creator"]
 minimum-version = "0.8"
 cmake.version = ">=3.18"
 
+[tool.cibuildwheel]
+# Linux-first: manylinux glibc wheels for CPython 3.8-3.13. macOS/Windows need a
+# leaner source set (no glibc fopen64) and are tracked as a follow-up.
+build = "cp38-* cp39-* cp310-* cp311-* cp312-* cp313-*"
+skip = "*-musllinux*"
+build-verbosity = 1
+# Smoke-test each built wheel: the extension loads (bundled libjpeg/zlib resolve)
+# and the CLI entry point is present.
+test-command = "python -c \"import nft_marker_creator, nft_marker_creator._core; print('import OK')\" && nft-marker-creator --help"
+
+[tool.cibuildwheel.linux]
+archs = ["x86_64"]
+manylinux-x86_64-image = "manylinux_2_28"
+# clang is required (GCC crashes at runtime; see python/DESIGN.md); plus libjpeg/zlib.
+before-all = "dnf install -y clang libjpeg-turbo-devel zlib-devel"
+environment = { CC = "clang", CXX = "clang++" }
+
 # Keep the sdist small and buildable: exclude the Node app, demo, WASM build
 # artifacts, tests, and the big vendored submodules (WebARKitLib is fetched via
 # FetchContent at build time; native uses system zlib). Only markerCreator.cpp
