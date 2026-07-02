@@ -112,6 +112,20 @@ target_include_directories(_core PRIVATE
 target_compile_definitions(_core PRIVATE HAVE_NFT HAVE_THREADING
   _LARGEFILE64_SOURCE _FILE_OFFSET_BITS=64)
 target_compile_options(_core PRIVATE -fno-strict-aliasing -fno-strict-overflow)
+# Hide all non-pybind symbols. pybind11 sets CXX_VISIBILITY_PRESET but not
+# C_VISIBILITY_PRESET, so the vendored C symbols (AR2/jpeg/zlib/...) would stay
+# exported and could interpose over auditwheel's bundled libjpeg. Good hygiene
+# for a Python extension (only PyInit__core needs to be visible).
+set_target_properties(_core PROPERTIES
+  C_VISIBILITY_PRESET hidden
+  CXX_VISIBILITY_PRESET hidden
+  VISIBILITY_INLINES_HIDDEN ON)
+# Link with the old 2-segment layout (-z noseparate-code). binutils' default
+# separate-code layout produces 4 PT_LOAD segments that auditwheel's patchelf
+# 0.17.2 corrupts when it grows the dynamic section (longer bundled-libjpeg
+# soname + RUNPATH), leaving DT_INIT (offset 0x25c) non-executable and crashing
+# at import. The merged layout survives patchelf's rewrite.
+target_link_options(_core PRIVATE "LINKER:-z,noseparate-code")
 target_link_libraries(_core PRIVATE JPEG::JPEG ZLIB::ZLIB Threads::Threads)
 
 install(TARGETS _core DESTINATION nft_marker_creator)
