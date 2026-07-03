@@ -1,13 +1,16 @@
 name: Python wheels (PyPI)
 
-# Builds manylinux wheels + sdist for the native Python package and publishes to
-# TestPyPI on a `python-v*` tag (independent of the Node/WASM release tags).
-# `workflow_dispatch` builds the wheels WITHOUT publishing, for testing.
+# Builds manylinux + Windows wheels and an sdist for the native Python package,
+# then publishes based on the tag (independent of the Node/WASM release tags):
+#   python-v0.1.0rc1 / a1 / b1 / dev1  -> TestPyPI  (staging)
+#   python-v0.1.0     (clean X.Y.Z)     -> real PyPI
+# `workflow_dispatch` builds + tests the wheels WITHOUT publishing.
 #
-# TestPyPI publishing uses Trusted Publishing (OIDC) — no API tokens. One-time
-# setup on https://test.pypi.org: add a "pending publisher" for project
-# `nft-marker-creator` -> owner `webarkit`, repo `Nft-Marker-Creator-App`,
-# workflow `python-wheels.yml`, environment `testpypi`.
+# Publishing uses Trusted Publishing (OIDC) — no API tokens. One-time setup:
+#   TestPyPI: pending publisher for project `nft-marker-creator` -> owner
+#     `webarkit`, repo `Nft-Marker-Creator-App`, workflow `python-wheels.yml`,
+#     environment `testpypi`.
+#   PyPI: same, on https://pypi.org, environment `pypi`.
 
 on:
   push:
@@ -16,9 +19,32 @@ on:
   workflow_dispatch:
 
 jobs:
-  build_wheels:
-    name: Wheels (manylinux x86_64)
+  check-release:
+    name: Classify tag
     runs-on: ubuntu-latest
+    outputs:
+      target: ${{ steps.classify.outputs.target }}
+    steps:
+      - id: classify
+        # target = pypi (final X.Y.Z) | testpypi (prerelease) | none (dispatch)
+        run: |
+          ref="${GITHUB_REF#refs/tags/}"
+          if [[ "$GITHUB_EVENT_NAME" != "push" || "$ref" != python-v* ]]; then
+            echo "target=none" >> "$GITHUB_OUTPUT"
+          elif [[ "$ref" =~ ^python-v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "target=pypi" >> "$GITHUB_OUTPUT"
+          else
+            echo "target=testpypi" >> "$GITHUB_OUTPUT"
+          fi
+          echo "tag=$ref target=$(cat "$GITHUB_OUTPUT")"
+
+  build_wheels:
+    name: Wheels (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
     steps:
       - uses: actions/checkout@v7
         with:
@@ -27,7 +53,7 @@ jobs:
         uses: pypa/cibuildwheel@v2.21.3
       - uses: actions/upload-artifact@v7
         with:
-          name: cibw-wheels
+          name: cibw-wheels-${{ matrix.os }}
           path: ./wheelhouse/*.whl
 
   build_sdist:
@@ -46,10 +72,9 @@ jobs:
 
   publish_testpypi:
     name: Publish to TestPyPI
-    needs: [build_wheels, build_sdist]
+    needs: [check-release, build_wheels, build_sdist]
     runs-on: ubuntu-latest
-    # Publish only on a python-v* tag; workflow_dispatch just builds/tests.
-    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/python-v')
+    if: needs.check-release.outputs.target == 'testpypi'
     environment:
       name: testpypi
       url: https://test.pypi.org/p/nft-marker-creator
@@ -65,3 +90,22 @@ jobs:
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           repository-url: https://test.pypi.org/legacy/
+
+  publish_pypi:
+    name: Publish to PyPI
+    needs: [check-release, build_wheels, build_sdist]
+    runs-on: ubuntu-latest
+    if: needs.check-release.outputs.target == 'pypi'
+    environment:
+      name: pypi
+      url: https://pypi.org/p/nft-marker-creator
+    permissions:
+      id-token: write # required for Trusted Publishing
+    steps:
+      - uses: actions/download-artifact@v7
+        with:
+          pattern: cibw-*
+          path: dist
+          merge-multiple: true
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
