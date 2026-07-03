@@ -20,8 +20,8 @@ minimum-version = "0.8"
 cmake.version = ">=3.18"
 
 [tool.cibuildwheel]
-# Linux-first: manylinux glibc wheels for CPython 3.8-3.13. macOS/Windows need a
-# leaner source set (no glibc fopen64) and are tracked as a follow-up.
+# manylinux glibc + Windows AMD64 wheels for CPython 3.8-3.13. macOS is a
+# tracked follow-up (can't be validated locally without a Mac).
 build = "cp38-* cp39-* cp310-* cp311-* cp312-* cp313-*"
 skip = "*-musllinux*"
 build-verbosity = 1
@@ -35,6 +35,12 @@ manylinux-x86_64-image = "manylinux_2_28"
 # clang is required (GCC crashes at runtime; see python/DESIGN.md); plus libjpeg/zlib.
 before-all = "dnf install -y clang libjpeg-turbo-devel zlib-devel"
 environment = { CC = "clang", CXX = "clang++" }
+
+[tool.cibuildwheel.windows]
+# Plain MSVC (no clang needed on Windows). zlib + libjpeg-turbo are fetched and
+# statically linked by CMake, so the .pyd is self-contained and needs no
+# delvewheel repair. See python/DESIGN_windows_pypi.md.
+archs = ["AMD64"]
 
 # Keep the sdist small and buildable: exclude the Node app, demo, WASM build
 # artifacts, tests, and the big vendored submodules (WebARKitLib is fetched via
