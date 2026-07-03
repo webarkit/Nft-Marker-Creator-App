@@ -27,8 +27,8 @@ Branch: `kalwalt/ci/pypi-release-and-cross-platform-wheels` (from `dev`)
 ## Assumptions
 
 1. **Windows compiler**: try **MSVC first** (cibuildwheel default). The "clang required"
-   rule was a *Linux GCC* codegen bug; MSVC is a different compiler with good Eigen/C++17
-   support. **clang-cl is the fallback**. *(Highest risk — validate first.)*
+   rule was a _Linux GCC_ codegen bug; MSVC is a different compiler with good Eigen/C++17
+   support. **clang-cl is the fallback**. _(Highest risk — validate first.)_
 2. **Windows deps**: statically link zlib + libjpeg-turbo via CMake `FetchContent`.
    Self-contained `.pyd`, **no delvewheel**, avoids the auditwheel/patchelf problem class.
 3. Windows **AMD64**, CPython **3.8–3.13** (matching Linux).
@@ -49,6 +49,7 @@ build_sdist  (ubuntu-latest)
 ```
 
 Tag rules (PEP 440):
+
 - `python-v0.1.0rc1` / `...a1` / `...b1` / `...dev1` → **TestPyPI**
 - `python-v0.1.0` (clean `X.Y.Z`) → **real PyPI**
 - `workflow_dispatch` → build + test only, no publish.
@@ -60,6 +61,7 @@ Both keep `permissions: id-token: write`.
 ### Part 2 — Windows wheels
 
 CMake (additive, guarded):
+
 ```cmake
 if(WIN32)
   target_compile_definitions(_core PRIVATE ARUTIL_DISABLE_PTHREADS)
@@ -75,10 +77,12 @@ endif()
 ```
 
 cibuildwheel:
+
 ```toml
 [tool.cibuildwheel.windows]
 archs = ["AMD64"]
 ```
+
 No repair step (static). `build`/`skip`/`test-command` already cross-platform.
 
 Workflow: `build_wheels` gets `matrix.os: [ubuntu-latest, windows-latest]`,
@@ -86,7 +90,7 @@ Workflow: `build_wheels` gets `matrix.os: [ubuntu-latest, windows-latest]`,
 
 ### Risk register — all resolved via local spike (VS2022 + CMake 4.1.2 + Py 3.11)
 
-1. **MSVC miscompile** — ✅ RESOLVED. Plain MSVC builds *and* runs correctly
+1. **MSVC miscompile** — ✅ RESOLVED. Plain MSVC builds _and_ runs correctly
    (import + threaded generation + real feature detection). No clang-cl needed.
 2. **zlib/libjpeg-turbo provisioning** — ✅ zlib via `FetchContent_MakeAvailable`
    (`zlibstatic`); libjpeg-turbo refuses `add_subdirectory`, so via
@@ -98,12 +102,15 @@ Workflow: `build_wheels` gets `matrix.os: [ubuntu-latest, windows-latest]`,
 
 ## Decision log
 
-| Decision | Alternatives | Why |
-| --- | --- | --- |
-| Prerelease→TestPyPI, final→PyPI | publish both always; replace TestPyPI | Keeps a staging gate before every real release. |
-| Single workflow + `check-release` gate | second workflow; scattered `contains()` | One source of truth, auditable classification. |
-| Windows before macOS | mac-first; both together | Maintainer can dogfood Windows locally; no Mac to test on. |
-| Static-link libjpeg/zlib on Windows | delvewheel + dynamic DLLs | Self-contained `.pyd`; avoids the auditwheel/patchelf failure class. |
-| MSVC first, clang-cl fallback | clang-cl first; require clang | "clang required" was Linux-GCC-specific; MSVC is the simplest default. |
-| Guard via `if(WIN32)`/`if(NOT MSVC)` | separate CMakeLists | Keep the proven Linux build byte-identical. |
+| Decision                               | Alternatives                            | Why                                                                    |
+| -------------------------------------- | --------------------------------------- | ---------------------------------------------------------------------- |
+| Prerelease→TestPyPI, final→PyPI        | publish both always; replace TestPyPI   | Keeps a staging gate before every real release.                        |
+| Single workflow + `check-release` gate | second workflow; scattered `contains()` | One source of truth, auditable classification.                         |
+| Windows before macOS                   | mac-first; both together                | Maintainer can dogfood Windows locally; no Mac to test on.             |
+| Static-link libjpeg/zlib on Windows    | delvewheel + dynamic DLLs               | Self-contained `.pyd`; avoids the auditwheel/patchelf failure class.   |
+| MSVC first, clang-cl fallback          | clang-cl first; require clang           | "clang required" was Linux-GCC-specific; MSVC is the simplest default. |
+| Guard via `if(WIN32)`/`if(NOT MSVC)`   | separate CMakeLists                     | Keep the proven Linux build byte-identical.                            |
+
+```
+
 ```
