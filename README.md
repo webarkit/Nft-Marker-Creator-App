@@ -2,6 +2,7 @@
 ![github stars](https://flat.badgen.net/github/stars/webarkit/Nft-Marker-Creator-App)
 ![github forks](https://flat.badgen.net/github/forks/webarkit/Nft-Marker-Creator-App)
 ![npm package version](https://flat.badgen.net/npm/v/@webarkit/nft-marker-creator-app)
+![PyPI version](https://flat.badgen.net/pypi/v/nft-marker-creator)
 ![docker pulls](https://flat.badgen.net/docker/pulls/webarkit/nft-marker-creator-app)
 [![CI](https://github.com/webarkit/Nft-Marker-Creator-App/actions/workflows/CI.yml/badge.svg)](https://github.com/webarkit/Nft-Marker-Creator-App/actions/workflows/CI.yml)
 [![Build Nft-Marker-Creator-App](https://github.com/webarkit/Nft-Marker-Creator-App/actions/workflows/build.yml/badge.svg)](https://github.com/webarkit/Nft-Marker-Creator-App/actions/workflows/main.yml)
@@ -9,7 +10,7 @@
 # Nft-Marker-Creator-App
 
 This editor creates NFT markers for **WebARKitLib** and **ARTOOLKIT 5.x**, they are compatible with jsartoolkitNFT.js, jsartoolkit5.js, artoolkit5.js, ARnft.js and AR.js.
-A Node app is provided.
+A **Node app** and a **native Python package** (on [PyPI](https://pypi.org/project/nft-marker-creator/)) are provided — jump to the [Python package](#python-package-pypi-) section for `pip install nft-marker-creator`.
 
 This project is based on the original **NFT Marker Creator** by [Carnaux](https://github.com/Carnaux/NFT-Marker-Creator) but has been updated to work with the latest versions of Node and NPM, and also to work with the latest version of Emscripten, plus other improvements.
 
@@ -110,6 +111,47 @@ Example: `node NFTMarkerCreator.js -i image.png -level=4 -min_thresh=8`
 - Open [http://localhost:3000/](http://localhost:3000/)
 - Add `-Demo` to the marker command to generate demo assets automatically: `node NFTMarkerCreator.js -i image.png -Demo`
 
+## Python package (PyPI) 🐍
+
+A native Python package — a [pybind11](https://github.com/pybind/pybind11) binding around the **same WebARKitLib core** as the Node app — is published on PyPI with prebuilt wheels, so **no compiler or Docker is required**.
+
+Wheels are provided for **Linux** (manylinux) and **Windows** (AMD64), CPython 3.8–3.13.
+
+### Installation 📦
+
+```bash
+pip install nft-marker-creator
+```
+
+### CLI 🚀
+
+```bash
+nft-marker-creator -i pinball.jpg -o ./markers --threads 4
+```
+
+This writes `<name>.iset`, `<name>.fset` and `<name>.fset3` to the output directory. Output is byte-identical regardless of thread count.
+
+| Flag             | Description                           | Default              |
+| ---------------- | ------------------------------------- | -------------------- |
+| `-i`, `--input`  | Input image (jpg/jpeg/png)            | required             |
+| `-o`, `--output` | Output directory                      | current dir          |
+| `--dpi`          | Force a DPI instead of image metadata | metadata, else `150` |
+| `--level`        | Tracking extraction level 0–4         | `2`                  |
+| `--leveli`       | Initialization extraction level 0–3   | `1`                  |
+| `--threads`      | Worker threads for feature extraction | `1`                  |
+| `-h`, `--help`   | Print CLI usage information           | —                    |
+
+### Python API 🐍
+
+```python
+import nft_marker_creator as nmc
+
+paths = nmc.create("pinball.jpg", output_dir="markers", threads=4)
+print(paths)  # ['markers/pinball.iset', 'markers/pinball.fset', 'markers/pinball.fset3']
+```
+
+See [python/README.md](python/README.md) for the full API and details.
+
 ## Additional resources 📚
 
 - [Marker quality tips](https://github.com/Carnaux/NFT-Marker-Creator/wiki/Creating-good-markers) — guidance on preparing images that track reliably
@@ -188,4 +230,4 @@ In VSCode you can run the `setup-docker` and `build-docker` command inside packa
 ## Planned Features
 
 - [x] Multi threading support to speed up the creation of the markers.
-- [ ] Python version of the project and app.
+- [x] Python version of the project and app. — published on [PyPI](https://pypi.org/project/nft-marker-creator/) 🎉
