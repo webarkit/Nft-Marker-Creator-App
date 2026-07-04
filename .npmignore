@@ -10,3 +10,12 @@ test/
 .github/
 .vscode/
 output/
+# Demo site + Docker files: not needed by npm consumers (the demo alone is ~8 MB).
+demo/
+docker/
+Dockerfile
+.dockerignore
+# Native Python package (published separately to PyPI).
+python/
+pyproject.toml
+CMakeLists.txt

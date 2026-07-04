@@ -13,11 +13,14 @@
     "NFT"
   ],
   "author": "@kalwalt https://github.com/kalwalt",
-  "repository": "https://github.com/webarkit/NFT-Marker-Creator-App.git",
-  "homepage": "https://github.com/webarkit/NFT-Marker-Creator-App",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/webarkit/Nft-Marker-Creator-App.git"
+  },
+  "homepage": "https://github.com/webarkit/Nft-Marker-Creator-App#readme",
   "contributors": [],
   "bugs": {
-    "url": "https://github.com/webarkit/NFT-Marker-Creator-App/issues"
+    "url": "https://github.com/webarkit/Nft-Marker-Creator-App/issues"
   },
   "dependencies": {
     "enquirer": "^2.4.1",
