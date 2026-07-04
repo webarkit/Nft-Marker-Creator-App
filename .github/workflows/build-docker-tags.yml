@@ -8,6 +8,10 @@ on:
   push:
     tags:
       - '**'
+      # Python package releases (python-v*) are a separate stream and must NOT
+      # publish the Docker image (it would clobber the `latest` tag). Node/Docker
+      # releases use plain SemVer tags (e.g. 0.4.0).
+      - '!python-v*'
 jobs:
   update:
     runs-on: ubuntu-latest

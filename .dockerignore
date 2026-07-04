@@ -13,3 +13,7 @@ test/
 node_modules/
 npm-debug.log
 .env
+# Native Python package — unused by the Node/WASM Docker image.
+python/
+pyproject.toml
+CMakeLists.txt

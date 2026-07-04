@@ -6,6 +6,10 @@ on:
       - '**'
     tags:
       - '**'
+      # Python package releases (python-v*) are a separate stream; they must not
+      # rebuild the Node/WASM app or create a GitHub release. Node releases use
+      # plain SemVer tags (e.g. 0.4.0).
+      - '!python-v*'
 jobs:
   build:
     runs-on: ubuntu-latest
