@@ -4,7 +4,7 @@ build-backend = "scikit_build_core.build"
 
 [project]
 name = "nft-marker-creator"
-version = "0.1.0"
+version = "0.1.0rc2"
 description = "Native NFT marker creator (WebARKitLib) via pybind11"
 readme = "python/README.md"
 requires-python = ">=3.8"
